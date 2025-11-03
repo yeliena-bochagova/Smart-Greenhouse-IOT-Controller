@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using SmartGreenhouse.UI;
 using System.Threading;
+using System.Windows.Controls;
 
 namespace SmartGreenhouse.UI.Tests
 {
@@ -46,7 +47,7 @@ namespace SmartGreenhouse.UI.Tests
             {
                 var window = new MainWindow();
                 var initialCount = window.LogsListBox.Items.Count;
-                window.btnHeater.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                window.btnHeater.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
                 Assert.Equal(initialCount + 1, window.LogsListBox.Items.Count);
                 window.Close();
             });

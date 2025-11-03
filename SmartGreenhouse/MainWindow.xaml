@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartGreenhouse.UI"
         mc:Ignorable="d"
-        Title="Smart Greenhouse Control Panel" Height="500" Width="800">
+        Title="Smart Greenhouse Control Panel" Height="600" Width="1000">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
@@ -13,17 +13,46 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Панель сенсорів -->
-        <GroupBox Header="Показники сенсорів" Grid.Row="0" Margin="5">
-            <DataGrid x:Name="SensorsDataGrid" AutoGenerateColumns="True" x:FieldModifier="public" />
-        </GroupBox>
+        <!-- Дві таблиці: зсередини теплиці (ліворуч) і дані середовища (праворуч) -->
+        <Grid Grid.Row="0" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" /> <!-- separator -->
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Header="Дані всередині теплиці" Grid.Column="0" Margin="0">
+                <!-- internal sensors -->
+                <DataGrid x:Name="SensorsDataGrid"
+                          AutoGenerateColumns="True"
+                          IsReadOnly="False"
+                          x:FieldModifier="public"
+                          Margin="4"/>
+            </GroupBox>
+
+            <GroupBox Header="Дані середовища (зовнішні / пристрій)" Grid.Column="2" Margin="0">
+                <!-- environment / device -->
+                <DataGrid x:Name="EnvDataGrid"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="False"
+                          x:FieldModifier="public"
+                          CellEditEnding="EnvDataGrid_CellEditEnding"
+                          Margin="4">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Ключ" Binding="{Binding Key}" Width="2*" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Значення" Binding="{Binding Value}" Width="3*" IsReadOnly="True" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </Grid>
 
         <!-- Панель керування -->
         <GroupBox Header="Керування" Grid.Row="1" Margin="5">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-                <Button x:Name="btnHeater" Content="Обігрівач" Width="100" Margin="10" x:FieldModifier="public" />
-                <Button x:Name="btnWater" Content="Полив" Width="100" Margin="10" x:FieldModifier="public" />
-                <Button x:Name="btnLight" Content="Освітлення" Width="100" Margin="10" x:FieldModifier="public" />
+                <Button x:Name="btnHeater" Content="Обігрівач" Width="110" Margin="10" x:FieldModifier="public" />
+                <Button x:Name="btnVentilation" Content="Вентиляція" Width="110" Margin="10" x:FieldModifier="public" />
+                <Button x:Name="btnWater" Content="Полив" Width="110" Margin="10" x:FieldModifier="public" />
+                <Button x:Name="btnLight" Content="Освітлення" Width="110" Margin="10" x:FieldModifier="public" />
             </StackPanel>
         </GroupBox>
 
