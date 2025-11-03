@@ -8,6 +8,6 @@ namespace SmartGreenhouse.Models
         public DateTime Timestamp { get; set; }
         public string Action { get; set; } = string.Empty;
         public string? Device { get; set; }
-        public double? Value { get; set; }
+        public string? Value { get; set; }
     }
 }
