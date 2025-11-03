@@ -18,6 +18,8 @@ using System.Windows.Threading;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
+using SmartGreenhouse.Data;
+using SmartGreenhouse.Models;
 
 namespace SmartGreenhouse.UI
 {
@@ -25,6 +27,8 @@ namespace SmartGreenhouse.UI
     {
         // Колекція для сенсорів (зміни відображаються автоматично у DataGrid)
         private ObservableCollection<SensorData> _sensors;
+
+        private readonly DataService _dataService = new DataService();
 
         // Колекція для логів
         private ObservableCollection<string> _logs;
@@ -59,7 +63,7 @@ namespace SmartGreenhouse.UI
         public MainWindow()
         {
             InitializeComponent();
-            
+
             SensorData.OnBaseValueChanged += HandleBaseValueChanged;
 
 
@@ -75,9 +79,9 @@ namespace SmartGreenhouse.UI
             _sensors.Add(new SensorData("Температура", "°C", 20.0)); // base 20°C
             _sensors.Add(new SensorData("Вологість", "%", 50.0));    // base 50%
             _sensors.Add(new SensorData("Освітлення", "lx", 200.0)); // base 200 lx
-            
+
             // Ініціалізація правої таблиці
-        _envData = new ObservableCollection<EnvRecord>
+            _envData = new ObservableCollection<EnvRecord>
     {
         new EnvRecord("Device coordinates", $"{_deviceLat:0.000},{_deviceLon:0.000}"),
         new EnvRecord("Greenhouse volume (m³)", _greenhouseVolume.ToString("0.##")),
@@ -85,7 +89,7 @@ namespace SmartGreenhouse.UI
         new EnvRecord("Outside humidity (%)", "N/A"),
         new EnvRecord("Outside illuminance (lx)", "N/A")
         };
-    EnvDataGrid.ItemsSource = _envData;
+            EnvDataGrid.ItemsSource = _envData;
             UpdateEnvData(); // тепер не буде порожньо
 
             // Злегка джиттеримо початкові значення, щоб не стояли рівно на BaseValue
@@ -111,12 +115,29 @@ namespace SmartGreenhouse.UI
             _ = FetchOutsideConditionsAsync(_deviceLat, _deviceLon);
             _ = FetchOutsideConditionsLoopAsync();
 
-            _logs.Add($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] System started. Volume={_greenhouseVolume} m³, outside temp={_outsideTemperature}°C, outside humidity={_outsideHumidity}%");
+           string msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] System started. Volume={_greenhouseVolume} m³, outside temp={_outsideTemperature}°C, outside humidity={_outsideHumidity}%";
+            _logs.Add(msg);
+            _ = _dataService.InsertLogAsync(msg);
+
             UpdateModeButtonColors();
 
             EnvDataGrid.ItemsSource = _envData;
             UpdateEnvData(); // initial fill
         }
+        
+        private void AddLog(string action, string? device = null, string? value = null)
+{
+    string msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {action}";
+    _logs.Add(msg);
+
+    _dataService.SaveLog(new LogRecord
+    {
+        Timestamp = DateTime.Now,
+        Action = action,
+        Device = device,
+        Value = value
+    });
+}
 
         private void UpdateEnvData()
         {
