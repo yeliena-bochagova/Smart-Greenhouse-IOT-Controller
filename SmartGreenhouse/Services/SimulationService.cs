@@ -10,7 +10,8 @@ namespace SmartGreenhouse.Services
         public List<Sensor> Sensors { get; private set; }
         public GreenhouseState State { get; private set; }
 
-        public event Action<GreenhouseState> OnStateUpdated;
+        public event Action<GreenhouseState> OnStateUpdated = delegate { };
+
 
         public SimulationService()
         {
