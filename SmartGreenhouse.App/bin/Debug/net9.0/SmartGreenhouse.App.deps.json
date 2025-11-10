@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "SmartGreenhouse.App/1.0.0": {
+        "dependencies": {
+          "SmartGreenhouse": "1.0.0"
+        },
+        "runtime": {
+          "SmartGreenhouse.App.dll": {}
+        }
+      },
+      "SmartGreenhouse/1.0.0": {
+        "runtime": {
+          "SmartGreenhouse.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SmartGreenhouse.App/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SmartGreenhouse/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
