@@ -24,7 +24,6 @@
     <PackageTags>IoT;greenhouse;controller</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/yeliena-bochagova/Smart-Greenhouse-IOT-Controller-Simulator</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <PackageOutputPath>../Package</PackageOutputPath>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
