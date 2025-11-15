@@ -31,23 +31,57 @@ services:
     image: loicsharma/baget:latest
     container_name: baget
     environment:
-      - DATABASE__TYPE=filesystem
-      - STORAGE__TYPE=filesystem
-      - BAGET__BASE_URL=http://0.0.0.0:80
+      - ASPNETCORE_URLS=http://+:80
     ports:
       - "5000:80"
     volumes:
       - ./storage:/var/baget
+      - ./BaGet.json:/app/appsettings.json
 EOF
+
+# === Creating minimal BaGet.json config ===
+cat > /home/vagrant/baget_data/BaGet.json <<'EOF'
+{
+  "Database": {
+    "Type": "Sqlite",
+    "ConnectionString": "Data Source=/var/baget/baget.db"
+  },
+  "Storage": {
+    "Type": "FileSystem",
+    "Path": "/var/baget"
+  },
+  "Search": {
+    "Type": "Database"
+  }
+}
+EOF
+
+# Fix permissions
+sudo chown -R vagrant:vagrant /home/vagrant/baget_data
 
 echo "=== Starting BaGet container ==="
 cd /home/vagrant/baget_data
+
+# Remove old stopped containers
+sudo docker rm -f baget 2>/dev/null || true
+
 # start container in detached mode
 sudo docker compose up -d
 
-echo "=== BaGet should be running at http://0.0.0.0:5000 (on VM). ==="
-echo "If you need the web UI, open http://192.168.56.10:5000 from host (or use port forwarding)."
+echo "=== BaGet should be running at http://192.168.56.10:5000 ==="
 
-# ensure docker container is started
-sleep 3
+sleep 5
 sudo docker ps --filter "name=baget" --format "table {{.Names}}\t{{.Status}}"
+
+# ──────────────────────────────────────────────
+echo "=== Adding BaGet as NuGet Source inside VM ==="
+sudo -u vagrant dotnet nuget remove source baget 2>/dev/null || true
+sudo -u vagrant dotnet nuget add source \
+  "http://192.168.56.10:5000/v3/index.json" \
+  --name baget
+
+# Optional test install (won't fail if package missing)
+echo "=== Attempting to install test package (optional) ==="
+sudo -u vagrant dotnet new console -o /home/vagrant/test-nuget 2>/dev/null || true
+sudo -u vagrant dotnet add /home/vagrant/test-nuget package TestPackage --source baget || true
+echo "=== Setup complete ==="

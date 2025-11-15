@@ -1,0 +1,19 @@
+{
+  "Storage": {
+    "Type": "FileSystem",
+    "Path": "/home/vagrant/baget_data"
+  },
+  "Database": {
+    "Type": "Sqlite",
+    "ConnectionString": "Data Source=/home/vagrant/baget_data/baget.db"
+  },
+  "Mirror": {
+    "Enabled": false
+  },
+  "Search": {
+    "Type": "Database"
+  },
+  "PackagePublish": {
+    "ApiKey": "my-secret-key"
+  }
+}

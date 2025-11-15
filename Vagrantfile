@@ -14,4 +14,5 @@ Vagrant.configure("2") do |config|
 
   # Provisioning: запускаємо shell-скрипт
   config.vm.provision "shell", path: "Vagrant/provision/setup-baget.sh"
+  
 end
