@@ -1,22 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows7.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
 
-  <PropertyGroup>
-    <RootNamespace>SmartGreenhouse</RootNamespace>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
-  </ItemGroup>
-
- <PropertyGroup>
+    <!-- NuGet metadata -->
+    <IsPackable>true</IsPackable>             <!-- обов'язково для dotnet pack -->
     <PackageId>SmartGreenhouse</PackageId>
     <Version>1.0.0</Version>
     <Authors>Smart Team</Authors>
@@ -25,8 +16,12 @@
     <PackageTags>IoT;greenhouse;controller</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/yeliena-bochagova/Smart-Greenhouse-IOT-Controller-Simulator</RepositoryUrl>
-    <PackageOutputPath>../Package</PackageOutputPath>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageOutputPath>bin\Release</PackageOutputPath> <!-- щоб .nupkg був у bin\Release -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
+  </ItemGroup>
 
 </Project>
