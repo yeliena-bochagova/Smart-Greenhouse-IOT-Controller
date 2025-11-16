@@ -1,0 +1,20 @@
+{
+  "Database": {
+    "Type": "Sqlite",
+    "ConnectionString": "Data Source=/var/baget/baget.db"
+  },
+  "Storage": {
+    "Type": "FileSystem",
+    "Path": "/var/baget"
+  },
+  "Search": {
+    "Type": "Database"
+  },
+  "NuGet": {
+    "AllowPackageUpload": true,
+    "AllowSymbolUpload": true
+  },
+  "Mirror": {
+    "Enabled": false
+  }
+}
