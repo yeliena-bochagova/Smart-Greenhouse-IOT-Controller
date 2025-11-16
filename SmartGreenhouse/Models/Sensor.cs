@@ -1,3 +1,4 @@
+using System;
 namespace SmartGreenhouse.Models
 {
     public enum SensorType { Temperature, Humidity, Light }
