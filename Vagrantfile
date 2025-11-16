@@ -4,7 +4,7 @@ Vagrant.configure("2") do |config|
 
   # ВМ з приватним IP (підходить для локальної мережі)
   config.vm.network "private_network", ip: "192.168.56.10"
-
+  config.vm.boot_timeout = 600
   # Назва для зручності
   config.vm.provider "virtualbox" do |vb|
     vb.name = "baget-vm"
