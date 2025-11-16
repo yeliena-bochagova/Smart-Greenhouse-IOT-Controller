@@ -14,3 +14,18 @@
 - C#
 - Entity Framework Core
 - GitHub 
+
+--
+1. Як підняти VM: 
+vagrant up
+
+2. Де доступний NuGet-репозиторій: 
+http://192.168.56.10:5000
+
+3. Як публікувати пакет (для учасника 1): 
+dotnet nuget push <package>.nupkg --source "http://192.168.56.10:5000/v3/index.json" 
+або: 
+./scripts/publish-package.ps1
+
+4. Як встановити пакет у VM: 
+dotnet add package SmartGreenhouse --source baget
