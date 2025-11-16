@@ -24,6 +24,4 @@ publish/
 
 # Vagrant
 .vagrant/
-Vagrant/BaGet.json
 secrets.json
-setup-baget.sh
