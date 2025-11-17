@@ -1,0 +1,45 @@
+# Vagrantfile for Smart Greenhouse IoT Controller
+# Laboratory Work 2 - Crossplatform Deployment
+
+Vagrant.configure("2") do |config|
+
+  # --- Global Settings ---
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 2048   # RAM per VM
+    vb.cpus = 2        # CPU cores per VM
+  end
+
+  # Sync the project root into the VM
+  config.vm.synced_folder "../", "/vagrant"
+
+  # --- Linux VM (Ubuntu) ---
+  config.vm.define "ubuntu" do |ubuntu|
+    ubuntu.vm.box = "ubuntu/focal64"
+    ubuntu.vm.hostname = "ubuntu-greenhouse"
+    ubuntu.vm.network "private_network", ip: "192.168.56.10"
+
+    # Provisioning script for Linux + BaGet
+    ubuntu.vm.provision "shell", path: "provision/linux-setup.sh"
+  end
+
+  # --- Linux VM (Debian) ---
+  config.vm.define "debian" do |debian|
+    debian.vm.box = "debian/bullseye64"
+    debian.vm.hostname = "debian-greenhouse"
+    debian.vm.network "private_network", ip: "192.168.56.12"
+
+    # Provisioning script for Debian
+    debian.vm.provision "shell", path: "provision/linux-setup.sh"
+  end
+
+  # --- Windows VM ---
+  config.vm.define "windows" do |win|
+    win.vm.box = "gusztavvargadr/windows-10"
+    win.vm.hostname = "windows-greenhouse"
+    win.vm.network "private_network", ip: "192.168.56.11"
+
+    # Provisioning script for Windows
+    win.vm.provision "shell", path: "provision/windows-setup.ps1"
+  end
+
+end

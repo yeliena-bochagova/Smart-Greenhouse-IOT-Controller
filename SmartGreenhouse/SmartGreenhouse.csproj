@@ -5,6 +5,7 @@
     <TargetFramework>net9.0-windows7.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
     <!-- NuGet metadata -->
     <IsPackable>true</IsPackable>             <!-- обов'язково для dotnet pack -->

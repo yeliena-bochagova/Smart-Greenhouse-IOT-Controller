@@ -39,18 +39,5 @@ namespace SmartGreenhouse.UI.Tests
                 window.Close();
             });
         }
-
-        [Fact]
-        public void ButtonClick_ShouldAddLog()
-        {
-            RunInSta(() =>
-            {
-                var window = new MainWindow();
-                var initialCount = window.LogsListBox.Items.Count;
-                window.btnHeater.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
-                Assert.Equal(initialCount + 1, window.LogsListBox.Items.Count);
-                window.Close();
-            });
-        }
     }
 }

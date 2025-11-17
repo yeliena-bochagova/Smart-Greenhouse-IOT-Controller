@@ -60,6 +60,9 @@ namespace SmartGreenhouse.UI
         // HTTP-клієнт для зовнішньої погоди
         private static readonly HttpClient _http = new HttpClient();
 
+        // Global variable accessible to all methods in this class
+        private string msg = string.Empty;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -115,7 +118,7 @@ namespace SmartGreenhouse.UI
             _ = FetchOutsideConditionsAsync(_deviceLat, _deviceLon);
             _ = FetchOutsideConditionsLoopAsync();
 
-           string msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] System started. Volume={_greenhouseVolume} m³, outside temp={_outsideTemperature}°C, outside humidity={_outsideHumidity}%";
+            msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] System started. Volume={_greenhouseVolume} m³, outside temp={_outsideTemperature}°C, outside humidity={_outsideHumidity}%";
             _logs.Add(msg);
             _ = _dataService.InsertLogAsync(msg);
 
@@ -127,7 +130,7 @@ namespace SmartGreenhouse.UI
         
         private void AddLog(string action, string? device = null, string? value = null)
 {
-    string msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {action}";
+     msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {action}";
     _logs.Add(msg);
 
     _dataService.SaveLog(new LogRecord
@@ -177,7 +180,9 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
                 {
                     _deviceLat = lat;
                     _deviceLon = lon;
-                    _logs.Add($"[{DateTime.Now:HH:mm:ss}] Coordinates updated → lat={lat:F3}, lon={lon:F3}");
+                     msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Coordinates updated → lat={lat:F3}, lon={lon:F3}";
+                _logs.Add(msg);
+                _ = _dataService.InsertLogAsync(msg);
                     await FetchOutsideConditionsAsync(lat, lon);
                     UpdateEnvData();
                 }
@@ -197,7 +202,9 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
             if (double.TryParse(newValue, out double volume) && volume > 0)
             {
                 _greenhouseVolume = volume;
-                _logs.Add($"[{DateTime.Now:HH:mm:ss}] Volume updated → {_greenhouseVolume:F1} m³");
+                 msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Volume updated → {_greenhouseVolume:F1} m³";
+_logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
                 UpdateEnvData();
             }
             else
@@ -348,6 +355,7 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
                 var l = _sensors.FirstOrDefault(s => s.Name == "Освітлення")?.Value ?? double.NaN;
                 string log = $"[{now:yyyy-MM-dd HH}:00] Hourly snapshot — T={t}{GetUnit("Температура")}, H={h}{GetUnit("Вологість")}, L={l}{GetUnit("Освітлення")}";
                 _logs.Add(log);
+_ = _dataService.InsertLogAsync(log);
             }
         }
 
@@ -369,8 +377,15 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
                 {
                     // збережено попередню поведінку — при включенні нагрівача можна змінювати базу
                     s.ChangeBase(0.5); // підвищити базову температуру на 0.5°C
-                    _logs.Add($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Heater pressed — base temperature -> {s.BaseValue}{s.Unit}");
+                     msg= $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Heater pressed — base temperature -> {s.BaseValue}{s.Unit}";
+                _logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
+                
+                
                 }
+
+
+
             }
             UpdateModeButtonColors();
         }
@@ -381,7 +396,10 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
             if (s != null)
             {
                 s.ChangeBase(1.0); // підвищити базову вологість на 1%
-                _logs.Add($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Water pressed — base humidity -> {s.BaseValue}{s.Unit}");
+                 msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Water pressed — base humidity -> {s.BaseValue}{s.Unit}";
+                            _logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
+            
             }
             UpdateModeButtonColors();
         }
@@ -394,7 +412,11 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
             {
                 _heaterOn = false;
             }
-            _logs.Add($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Ventilation toggled -> {(_ventilationOn ? "ON" : "OFF")}, outsideTemp={_outsideTemperature}°C, outsideHumidity={_outsideHumidity}%");
+             msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Ventilation toggled -> {(_ventilationOn ? "ON" : "OFF")}, outsideTemp={_outsideTemperature}°C, outsideHumidity={_outsideHumidity}%";
+                            _logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
+            
+            
             UpdateModeButtonColors();
         }
 
@@ -404,7 +426,10 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
             if (s != null)
             {
                 s.ChangeBase(50.0); // підвищити базове освітлення на 50 lx
-                _logs.Add($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Light pressed — base light -> {s.BaseValue}{s.Unit}");
+                 msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Light pressed — base light -> {s.BaseValue}{s.Unit}";
+                            _logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
+            
             }
             UpdateModeButtonColors();
         }
@@ -434,18 +459,24 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
 
         private void HandleBaseValueChanged(SensorData sensor)
 {
-    if (sensor.Name == "Температура")
-    {
-        _heaterOn = true;
-        _ventilationOn = false;
-        _logs.Add($"[{DateTime.Now:HH:mm:ss}] Base temperature manually changed → Heater ON");
-    }
-    else if (sensor.Name == "Вологість")
-    {
-        _heaterOn = false;
-        _ventilationOn = false;
-        _logs.Add($"[{DateTime.Now:HH:mm:ss}] Base humidity manually changed → Water mode ON");
-    }
+            if (sensor.Name == "Температура")
+            {
+                _heaterOn = true;
+                _ventilationOn = false;
+                 msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Base temperature manually changed → Heater ON";
+_logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
+
+            }
+            else if (sensor.Name == "Вологість")
+            {
+                _heaterOn = false;
+                _ventilationOn = false;
+                 msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Base humidity manually changed → Water mode ON";
+                            _logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
+            
+            }
     UpdateModeButtonColors();
 }
 
@@ -476,6 +507,8 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
         // Підтягуємо температуру та годинну вологість з Open-Meteo (hourly.relativehumidity_2m)
         private async Task FetchOutsideConditionsAsync(double lat, double lon)
         {
+            msg = string.Empty;
+
             try
             {
                 string url = $"https://api.open-meteo.com/v1/forecast?" +
@@ -485,9 +518,14 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
                              $"&timezone=UTC";
 
                 using var resp = await _http.GetAsync(url);
+
                 if (!resp.IsSuccessStatusCode)
                 {
-                    _logs.Add($"[{DateTime.Now:HH:mm:ss}] Weather fetch failed: HTTP {(int)resp.StatusCode}");
+                    string msg1;
+                    msg1=$"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Weather fetch failed: HTTP {(int)resp.StatusCode}";
+                    _logs.Add(msg1);
+                    _ = _dataService.InsertLogAsync(msg1);
+                    
                     return;
                 }
 
@@ -519,7 +557,8 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
                     // якщо це не об'єкт, пропускаємо
                     if (hourly.ValueKind != JsonValueKind.Object)
                     {
-                        _logs.Add($"[{DateTime.Now:HH:mm:ss}] hourly is {hourly.ValueKind}, skipping detailed parse");
+                        string msg1;
+                        msg1=$"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] hourly is {hourly.ValueKind}, skipping detailed parse";
                     }
                     else
                     {
@@ -559,13 +598,19 @@ private async void EnvDataGrid_CellEditEnding(object sender, DataGridCellEditEnd
                 }
 
 
-                _logs.Add($"[{DateTime.Now:HH:mm:ss}] Weather updated: T={_outsideTemperature:F1}°C, H={_outsideHumidity:F0}%, SR={_outsideIlluminance:F0}");
+                string msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Weather updated: T={_outsideTemperature:F1}°C, H={_outsideHumidity:F0}%, SR={_outsideIlluminance:F0}";
+                                _logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
+                
                 UpdateEnvData();
 
             }
             catch (Exception ex)
             {
-                _logs.Add($"[{DateTime.Now:HH:mm:ss}] Weather fetch failed: {ex.Message}");
+                 msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Weather fetch failed: {ex.Message}";
+                            _logs.Add(msg);
+_ = _dataService.InsertLogAsync(msg);
+            
             }
         }
     }
