@@ -25,6 +25,10 @@ sudo mkdir -p /home/vagrant/baget_data
 sudo mkdir -p /home/vagrant/baget_data/storage  
 sudo chown -R vagrant:vagrant /home/vagrant/baget_data
 
+echo "=== Installing jq ==="
+sudo apt-get update -y
+sudo apt-get install -y jq
+
 echo "=== Creating docker-compose.yml for BaGet ==="
 cat > /home/vagrant/baget_data/docker-compose.yml <<'EOF'
 version: '3.8'
@@ -41,7 +45,7 @@ services:
       - ./BaGet.json:/app/appsettings.json
 EOF
 
-API_KEY=$(jq -r '.PackagePublish.ApiKey' /home/vagrant/baget_data/secrets.json)
+#API_KEY=$(jq -r '.PackagePublish.ApiKey' /home/vagrant/baget_data/secrets.json)
 
 
 # === Creating minimal BaGet.json config ===
