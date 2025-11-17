@@ -1,4 +1,3 @@
-```bash
 # 🌿 SmartGreenhouse — Кросплатформенний запуск через Vagrant
 
 Цей репозиторій демонструє, як запускати застосунок **SmartGreenhouse** на різних операційних системах за допомогою **Vagrant**.
@@ -71,7 +70,6 @@ README.md                   # Цей файл
 Платформа        Стан   Підтримка
 Windows 10/11    ✔      WPF UI
 Ubuntu (Vagrant VM) ✔   Console
-macOS (через Vagrant) ✔ Console
 
 ---
 
@@ -91,4 +89,3 @@ dotnet nuget push <package>.nupkg --source "http://192.168.56.10:5000/v3/index.j
 
 # 4. Як встановити пакет у VM:
 dotnet add package SmartGreenhouse --source baget
-```
