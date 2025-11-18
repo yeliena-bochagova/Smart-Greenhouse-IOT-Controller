@@ -10,7 +10,7 @@
 
 ## Запуск
 1. `dotnet run` у папці Smart-Greenhouse.Web
-2. Перейти на https://localhost:5001
+2. Перейти на http://localhost:5273
 
 ## Валідації
 - Username: унікальний, max 50 chars
