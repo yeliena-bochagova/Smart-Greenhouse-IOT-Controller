@@ -1,0 +1,31 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<h2>Profile</h2>
+
+<div class="profile-info" style="max-width: 400px;">
+    <div class="info-item" style="margin-bottom: 10px;">
+        <strong>Username:</strong> @Model.Username
+    </div>
+    <div class="info-item" style="margin-bottom: 10px;">
+        <strong>Email:</strong> @Model.Email
+    </div>
+    <div class="info-item" style="margin-bottom: 10px;">
+        <strong>Phone:</strong> @Model.Phone
+    </div>
+    <div class="info-item" style="margin-bottom: 20px;">
+        <strong>Roles:</strong> @Model.Roles
+    </div>
+
+    <form method="post" asp-action="Logout" style="margin-bottom: 20px;">
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
+
+    <div class="subroutines-links" style="margin-top: 10px;">
+        <a asp-controller="Subroutine1" asp-action="Index" style="margin-right: 10px;">Subroutine1</a>
+        <a asp-controller="Subroutine2" asp-action="Index" style="margin-right: 10px;">Subroutine2</a>
+        <a asp-controller="Subroutine3" asp-action="Index">Subroutine3</a>
+    </div>
+</div>
