@@ -19,6 +19,12 @@ namespace SmartGreenhouse.Web.Services
             return user;
         }
 
+
+        public UserRecord? GetByEmail(string email)
+        {
+            return _users.Values.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+        }
+
         public IEnumerable<UserRecord> GetAll() => _users.Values;
     }
 }
