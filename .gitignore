@@ -26,5 +26,5 @@ publish/
 .vagrant/
 secrets.json
 
-OAuth2/appsettings.json
 SmartGreenhouse.Web/appsettings.json
+OAuth2/appsettings.json
