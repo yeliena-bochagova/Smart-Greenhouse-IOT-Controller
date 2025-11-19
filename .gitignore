@@ -25,3 +25,5 @@ publish/
 # Vagrant
 .vagrant/
 secrets.json
+
+OAuth2/appsettings.json
