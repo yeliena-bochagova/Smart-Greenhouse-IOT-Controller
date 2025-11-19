@@ -27,3 +27,4 @@ publish/
 secrets.json
 
 OAuth2/appsettings.json
+SmartGreenhouse.Web/appsettings.json
