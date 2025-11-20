@@ -1,37 +1,51 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using SmartGreenhouse.Web.Services;
+using SmartGreenhouse.Web.Models; // Потрібно, якщо якісь моделі використовуються тут
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// =========================================================
+// 1. РЕЄСТРАЦІЯ СЕРВІСІВ (Dependency Injection)
+// =========================================================
+
+// Додаємо MVC контролери та Views
 builder.Services.AddControllersWithViews();
 
-// Додаємо наш сервіс UserStore
+// [ВАЖЛИВО] Реєструємо сховище користувачів (Singleton = одна база в пам'яті на всіх)
 builder.Services.AddSingleton<UserStore>();
 
-// Налаштування аутентифікації
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-})
-.AddCookie(options =>
-{
-    options.LoginPath = "/Auth/Login"; // маршрут для логіну
-})
-.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
-{
-    // Введи свої ClientId/ClientSecret у appsettings.json або змінні оточення
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
-    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-});
+// [ВАЖЛИВО] Реєструємо сервіс теплиці (Singleton = одна теплиця на всіх)
+builder.Services.AddSingleton<ISensorService, SensorService>();
 
-builder.Services.AddAuthorization();
+// =========================================================
+// 2. НАЛАШТУВАННЯ АВТОРИЗАЦІЇ ТА СЕСІЙ
+// =========================================================
+
+// Налаштування Cookies (Сучасний спосіб входу)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        // Якщо незалогінений юзер лізе в теплицю -> кидаємо його на логін
+        options.LoginPath = "/Auth/Login"; 
+        options.LogoutPath = "/Auth/Logout";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    });
+
+// Налаштування Сесій (Для сумісності зі старим кодом Subroutine1/2)
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// =========================================================
+// 3. НАЛАШТУВАННЯ PIPELINE (Обробка запитів)
+// =========================================================
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -39,28 +53,22 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles(); // Дозволяє CSS, картинки
 
 app.UseRouting();
 
-app.UseAuthentication(); // middleware аутентифікації
-app.UseAuthorization();  // middleware авторизації
+// Порядок важливий!
+app.UseSession();        // 1. Включаємо сесію
+app.UseAuthentication(); // 2. Перевіряємо "хто це" (Login)
+app.UseAuthorization();  // 3. Перевіряємо "чи можна" (Access)
 
-// Маршрути
+// =========================================================
+// 4. МАРШРУТИЗАЦІЯ (Routing)
+// =========================================================
+
 app.MapControllerRoute(
     name: "default",
+    // ТУТ ЗМІНА: Стартуємо з HomeController, метод Welcome
     pattern: "{controller=Home}/{action=Welcome}/{id?}");
-
-// Додатковий маршрут для Subroutine (задач)
-app.MapControllerRoute(
-    name: "subroutine",
-    pattern: "Subroutine/{action=Index}/{task?}",
-    defaults: new { controller = "Subroutine" });
-
-// Маршрути для Auth (Login/Logout/Register)
-app.MapControllerRoute(
-    name: "auth",
-    pattern: "Auth/{action=Login}/{id?}",
-    defaults: new { controller = "Auth" });
 
 app.Run();

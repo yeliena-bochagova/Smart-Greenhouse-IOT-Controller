@@ -1,23 +1,47 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SmartGreenhouse.Web.Models;
+using SmartGreenhouse.Web.Services;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartGreenhouse.Web.Controllers
 {
     [Authorize]
     public class Subroutine2Controller : Controller
     {
-        [HttpGet]
-        public IActionResult Index() => View(new SubroutineXModel());
+        private readonly ISensorService _service;
 
-        [HttpPost]
-        public IActionResult Index(SubroutineXModel model)
+        public Subroutine2Controller(ISensorService service)
         {
-            model.Output = model.Input?.ToUpper() ?? "";
-            return View(model);
+            _service = service;
         }
 
+        public IActionResult Index()
+        {
+            ViewBag.User = User.Identity.Name;
+            var state = _service.GetState();
+            return View(state);
+        }
+
+        // --- НОВИЙ МЕТОД ДЛЯ ФОНОВОГО ОНОВЛЕННЯ ---
         [HttpGet]
-        public IActionResult Description() => View();
+        public IActionResult GetSystemState()
+        {
+            // Повертаємо дані у форматі JSON, щоб JavaScript міг їх прочитати
+            var state = _service.GetState();
+            return Json(state);
+        }
+        // ------------------------------------------
+
+        [HttpPost] public IActionResult ToggleHeater() { _service.ToggleHeater(); return RedirectToAction("Index"); }
+        [HttpPost] public IActionResult ToggleVentilation() { _service.ToggleVentilation(); return RedirectToAction("Index"); }
+        [HttpPost] public IActionResult Water() { _service.WaterPlants(); return RedirectToAction("Index"); }
+        [HttpPost] public IActionResult AddLight() { _service.AddLight(); return RedirectToAction("Index"); }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateSettings(double lat, double lon, double volume)
+        {
+            await _service.UpdateCoordinatesAsync(lat, lon, volume);
+            return RedirectToAction("Index");
+        }
     }
 }

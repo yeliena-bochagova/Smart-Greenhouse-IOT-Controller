@@ -1,24 +1,27 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SmartGreenhouse.Web.Models;
-using System.Linq;
+using Microsoft.AspNetCore.Http;
 
 namespace SmartGreenhouse.Web.Controllers
 {
-    [Authorize]
     public class Subroutine1Controller : Controller
     {
-        [HttpGet]
-        public IActionResult Index() => View(new SubroutineXModel());
-
-        [HttpPost]
-        public IActionResult Index(SubroutineXModel model)
+        // GET: Показати форму входу
+        public IActionResult Index()
         {
-            model.Output = model.Input is null ? "" : new string(model.Input.Reverse().ToArray());
-            return View(model);
+            return View();
         }
 
-        [HttpGet]
-        public IActionResult Description() => View();
+        // POST: Обробити вхід
+        [HttpPost]
+        public IActionResult Login(string username)
+        {
+            if (!string.IsNullOrWhiteSpace(username))
+            {
+                // Простий "фейковий" логін через сесію
+                HttpContext.Session.SetString("User", username);
+                return RedirectToAction("Index", "Subroutine2"); // Перехід до теплиці
+            }
+            return View("Index");
+        }
     }
 }

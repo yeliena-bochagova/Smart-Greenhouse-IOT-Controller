@@ -1,28 +1,94 @@
-@model SmartGreenhouse.Web.Models.SubroutineXModel
-@{
-    ViewData["Title"] = "Subroutine 2";
-}
+@model SmartGreenhouse.Web.Models.GreenhouseState
 
-<h2>Subroutine 2 — To Uppercase Example</h2>
-
-<form asp-action="Index" method="post" style="max-width: 400px;">
-    <div class="form-group" style="margin-bottom: 15px;">
-        <label asp-for="Input">Input</label>
-        <input asp-for="Input" class="form-control" style="width: 100%;" />
-        <span asp-validation-for="Input" class="text-danger"></span>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h2>🌿 Теплиця: Панель керування</h2>
+        <span>Вітаємо, <strong>@ViewBag.User</strong>!</span>
     </div>
 
-    <div class="form-group" style="margin-top: 10px;">
-        <button type="submit" class="btn btn-primary">Run</button>
+    <div class="card p-3 mb-4 bg-light">
+        <form asp-action="UpdateSettings" method="post" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label>Широта (Lat)</label>
+                <input type="text" name="lat" value="@Model.Latitude" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label>Довгота (Lon)</label>
+                <input type="text" name="lon" value="@Model.Longitude" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label>Об'єм (m³)</label>
+                <input type="number" name="volume" value="@Model.Volume" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Оновити розташування</button>
+            </div>
+        </form>
     </div>
-</form>
 
-@if (!string.IsNullOrEmpty(Model.Output))
-{
-    <div class="output-section" style="max-width: 400px; margin-top: 20px;">
-        <h3>Output</h3>
-        <div class="output-box" style="padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;">
-            @Model.Output
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="text-success">🏠 Всередині (Real-time)</h4>
+            <table class="table table-bordered">
+                <tr><th>Параметр</th><th>Значення</th></tr>
+                <tr><td>Температура</td><td><span id="in-temp">@Model.InsideTemp.ToString("F1")</span> °C</td></tr>
+                <tr><td>Вологість</td><td><span id="in-hum">@Model.InsideHumidity.ToString("F0")</span> %</td></tr>
+                <tr><td>Освітлення</td><td><span id="in-light">@Model.InsideLight.ToString("F0")</span> lx</td></tr>
+            </table>
+            
+            <div class="d-grid gap-2">
+                <form asp-action="ToggleHeater" class="d-inline">
+                    <button class="btn @(Model.IsHeaterOn ? "btn-success" : "btn-secondary") w-100 mb-1">🔥 Обігрів: @(Model.IsHeaterOn ? "ON" : "OFF")</button>
+                </form>
+                <form asp-action="ToggleVentilation" class="d-inline">
+                    <button class="btn @(Model.IsVentilationOn ? "btn-success" : "btn-secondary") w-100 mb-1">💨 Вентиляція: @(Model.IsVentilationOn ? "ON" : "OFF")</button>
+                </form>
+                <div class="btn-group w-100">
+                    <form asp-action="Water" class="w-50"><button class="btn btn-info w-100">💧 Полив</button></form>
+                    <form asp-action="AddLight" class="w-50"><button class="btn btn-warning w-100">💡 Світло</button></form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h4 class="text-primary">🌍 Ззовні (API)</h4>
+            <table class="table table-dark">
+                <tr><th>Параметр</th><th>Значення</th></tr>
+                <tr><td>Температура</td><td><span id="out-temp">@(Model.OutsideTemp?.ToString("F1") ?? "N/A")</span> °C</td></tr>
+                <tr><td>Вологість</td><td><span id="out-hum">@(Model.OutsideHumidity?.ToString("F0") ?? "N/A")</span> %</td></tr>
+                <tr><td>Радіація/Світло</td><td><span id="out-light">@(Model.OutsideIlluminance?.ToString("F0") ?? "N/A")</span> lx</td></tr>
+            </table>
+            <div class="mt-3">
+               <a asp-controller="Subroutine3" asp-action="Index" class="btn btn-outline-dark w-100">
+        📜 Переглянути історію логів
+    </a>
+            </div>
         </div>
     </div>
-}
+</div>
+
+<script>
+    // Функція запускається кожну секунду (1000 мс)
+    setInterval(() => {
+        fetch('/Subroutine2/GetSystemState') // Стукаємо в контролер
+            .then(response => response.json()) // Читаємо відповідь як JSON
+            .then(data => {
+                // Оновлюємо цифри на сторінці без перезавантаження
+                // data.insideTemp - це назва змінної, тільки з маленької літери (camelCase)
+                
+                document.getElementById('in-temp').innerText = data.insideTemp.toFixed(1);
+                document.getElementById('in-hum').innerText = data.insideHumidity.toFixed(0);
+                document.getElementById('in-light').innerText = data.insideLight.toFixed(0);
+
+                if(data.outsideTemp !== null) 
+                    document.getElementById('out-temp').innerText = data.outsideTemp.toFixed(1);
+                
+                if(data.outsideHumidity !== null)
+                    document.getElementById('out-hum').innerText = data.outsideHumidity.toFixed(0);
+
+                if(data.outsideIlluminance !== null)
+                    document.getElementById('out-light').innerText = data.outsideIlluminance.toFixed(0);
+            })
+            .catch(error => console.error('Error updating data:', error));
+    }, 1000);
+</script>

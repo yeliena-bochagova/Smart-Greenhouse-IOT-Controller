@@ -1,28 +1,15 @@
-@model SmartGreenhouse.Web.Models.SubroutineXModel
 @{
-    ViewData["Title"] = "Subroutine 1";
+    ViewData["Title"] = "Вхід у систему";
 }
 
-<h2>Subroutine 1 — Reverse String Example</h2>
-
-<form asp-action="Index" method="post" style="max-width: 400px;">
-    <div class="form-group" style="margin-bottom: 15px;">
-        <label asp-for="Input">Input</label>
-        <input asp-for="Input" class="form-control" style="width: 100%;" />
-        <span asp-validation-for="Input" class="text-danger"></span>
-    </div>
-
-    <div class="form-group" style="margin-top: 10px;">
-        <button type="submit" class="btn btn-primary">Run</button>
-    </div>
-</form>
-
-@if (!string.IsNullOrEmpty(Model.Output))
-{
-    <div class="output-section" style="max-width: 400px; margin-top: 20px;">
-        <h3>Output</h3>
-        <div class="output-box" style="padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;">
-            @Model.Output
+<div class="text-center mt-5">
+    <h2>🔐 Авторизація</h2>
+    <p>Введіть своє ім'я, щоб отримати доступ до керування теплицею.</p>
+    
+    <form asp-action="Login" method="post" class="w-50 mx-auto">
+        <div class="mb-3">
+            <input type="text" name="username" class="form-control" placeholder="Ваше ім'я..." required />
         </div>
-    </div>
-}
+        <button type="submit" class="btn btn-primary">Увійти</button>
+    </form>
+</div>
