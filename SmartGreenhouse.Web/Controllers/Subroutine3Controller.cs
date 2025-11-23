@@ -16,9 +16,12 @@ namespace SmartGreenhouse.Web.Controllers
 
         public IActionResult Index()
         {
-            // Отримуємо список логів (це List<string>)
-            var logs = _service.GetLogs();
-            
+            // Отримуємо ім'я користувача (якщо він авторизований)
+            var username = User.Identity?.Name;
+
+            // Отримуємо список логів (це List<string>), передаємо ім'я користувача
+            var logs = _service.GetLogs(username);
+
             // Передаємо його у View
             return View(logs);
         }

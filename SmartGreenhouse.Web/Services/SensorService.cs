@@ -1,119 +1,200 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading; // Для Таймера
-using System.Threading.Tasks;
-using System.Globalization; // Для крапок у числах
 using SmartGreenhouse.Web.Models;
+using SmartGreenhouse.Web.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Text.Json;
+using System.Collections.Concurrent;
 
 namespace SmartGreenhouse.Web.Services
 {
     public class SensorService : ISensorService, IDisposable
     {
-        private readonly GreenhouseState _state = new GreenhouseState();
+        private readonly ConcurrentDictionary<string, GreenhouseState> _states = new();
         private readonly List<string> _logs = new List<string>();
         private static readonly HttpClient _http = new HttpClient();
-        
-        // Таймер для емуляції фізики (заміна DispatcherTimer з WPF)
         private Timer _physicsTimer;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly Random _random = new Random();
 
-        public SensorService()
+        public SensorService(IServiceProvider serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             AddLog("System started.");
-            
-            // Запускаємо початкове оновлення погоди
-            _ = FetchWeather();
 
-            // Запускаємо таймер: спрацьовує кожні 2 секунди (2000 мс)
+            // Таймер фізики кожні 2 секунди
             _physicsTimer = new Timer(SimulatePhysics, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
         }
 
-        public GreenhouseState GetState() => _state;
-        public List<string> GetLogs() => _logs;
+        public GreenhouseState GetState(string username)
+        {
+            return EnsureStateExists(username);
+        }
+
+        private GreenhouseState EnsureStateExists(string username)
+        {
+            if (_states.TryGetValue(username, out var state))
+            {
+                return state;
+            }
+
+            var newState = new GreenhouseState();
+            Task.Run(() => FetchWeatherForState(newState, username));
+            return _states.GetOrAdd(username, newState);
+        }
+
+        public List<string> GetLogs(string username) => _logs;
 
         // --- Керування кнопками ---
-        public void ToggleHeater()
+        public void ToggleHeater(string username)
         {
-            _state.IsHeaterOn = !_state.IsHeaterOn;
-            if (_state.IsHeaterOn)
+            var state = GetState(username);
+            state.IsHeaterOn = !state.IsHeaterOn;
+            if (state.IsHeaterOn)
             {
-                _state.IsVentilationOn = false; // Нагрівач вимикає вентиляцію
-                AddLog("Heater ON.");
+                state.IsVentilationOn = false;
+                AddLog($"[{username}] Heater ON.");
             }
-            else AddLog("Heater OFF.");
+            else AddLog($"[{username}] Heater OFF.");
         }
 
-        public void ToggleVentilation()
+        public void ToggleVentilation(string username)
         {
-            _state.IsVentilationOn = !_state.IsVentilationOn;
-            if (_state.IsVentilationOn)
+            var state = GetState(username);
+            state.IsVentilationOn = !state.IsVentilationOn;
+            if (state.IsVentilationOn)
             {
-                _state.IsHeaterOn = false; // Вентиляція вимикає нагрівач
-                AddLog("Ventilation ON.");
+                state.IsHeaterOn = false;
+                AddLog($"[{username}] Ventilation ON.");
             }
-            else AddLog("Ventilation OFF.");
+            else AddLog($"[{username}] Ventilation OFF.");
         }
 
-        public void WaterPlants()
+        public void WaterPlants(string username)
         {
-            _state.InsideHumidity += 5.0; // Різкий скачок вологості при поливі
-            if (_state.InsideHumidity > 100) _state.InsideHumidity = 100;
-            AddLog("Plants watered (+5% Humidity).");
+            var state = GetState(username);
+            state.InsideHumidity += 5.0;
+            if (state.InsideHumidity > 100) state.InsideHumidity = 100;
+            AddLog($"[{username}] Plants watered (+5% Humidity).");
         }
 
-        public void AddLight()
+        public void AddLight(string username)
         {
-            _state.InsideLight += 50.0;
-            AddLog("Light manually added (+50 lx).");
+            var state = GetState(username);
+            state.InsideLight += 50.0;
+            AddLog($"[{username}] Light manually added (+50 lx).");
         }
 
-        public async Task UpdateCoordinatesAsync(double lat, double lon, double volume)
+        public async Task UpdateCoordinatesAsync(double lat, double lon, double volume, string username)
         {
-            _state.Latitude = lat;
-            _state.Longitude = lon;
-            _state.Volume = volume;
-            AddLog($"Settings updated: Lat={lat}, Lon={lon}, Vol={volume}");
-            await FetchWeather();
+            var state = GetState(username);
+            state.Latitude = lat;
+            state.Longitude = lon;
+            state.Volume = volume;
+            AddLog($"[{username}] Settings updated: Lat={lat}, Lon={lon}, Vol={volume}");
+            await FetchWeatherForState(state, username);
         }
 
-        // --- ФОНОВА ФІЗИКА (Те, чого не вистачало) ---
+        // --- ФОНОВА ФІЗИКА ---
         private void SimulatePhysics(object? state)
         {
-            // 1. Температура
-            double targetTemp = _state.IsVentilationOn 
-                ? (_state.OutsideTemp ?? 20.0) // Якщо вентиляція - прагнемо до вулиці
-                : (_state.IsHeaterOn ? 30.0 : 15.0); // Якщо гріємо - до 30, якщо ні - падає до 15 (умовно)
+            foreach (var entry in _states)
+            {
+                string username = entry.Key;
+                GreenhouseState userState = entry.Value;
+                double dt = 2.0;
 
-            // Плавна зміна температури (наближення до цілі)
-            double changeSpeed = 0.2; // Швидкість зміни
-            if (_state.InsideTemp < targetTemp) _state.InsideTemp += changeSpeed;
-            else if (_state.InsideTemp > targetTemp) _state.InsideTemp -= changeSpeed;
+                // ===== Температура =====
+                double naturalTarget = userState.OutsideTemp ?? userState.InsideTemp;
+                double targetTemp;
 
-            // 2. Вологість (повільно падає, якщо не поливати)
-            if (_state.InsideHumidity > 30) 
-                _state.InsideHumidity -= 0.1;
+                if (userState.IsVentilationOn)
+                {
+                    targetTemp = naturalTarget;
+                }
+                else if (userState.IsHeaterOn)
+                {
+                    double desiredHeat = 25.0;
+                    double maxTarget = 30.0;
+                    targetTemp = Math.Min(maxTarget, desiredHeat + (naturalTarget * 0.5));
+                    targetTemp = Math.Max(targetTemp, userState.InsideTemp + 1.0);
+                }
+                else
+                {
+                    targetTemp = naturalTarget; // виправлено: прагнемо до зовнішньої температури
+                }
 
-            // 3. Округлення для краси
-            _state.InsideTemp = Math.Round(_state.InsideTemp, 2);
-            _state.InsideHumidity = Math.Round(_state.InsideHumidity, 1);
+                double diff = targetTemp - userState.InsideTemp;
+                double rate = 0.005 * (100.0 / Math.Max(1.0, userState.Volume)); // сповільнено
+                double alpha = 1.0 - Math.Exp(-rate * dt);
+                double newValue = userState.InsideTemp + (diff * alpha);
+
+                double changeDelta = newValue - userState.InsideTemp;
+                double maxChange = userState.IsHeaterOn ? 0.2 : 0.05;
+                maxChange = userState.IsVentilationOn ? 0.02 : maxChange;
+
+
+                if (Math.Abs(changeDelta) > maxChange)
+                {
+                    newValue = userState.InsideTemp + Math.Sign(changeDelta) * maxChange;
+                }
+
+                userState.InsideTemp = Math.Round(newValue, 2);
+
+                // Джиттер температури (завжди)
+                double jitterTemp = (_random.NextDouble() * 0.001) - 0.0005;
+                userState.InsideTemp = Math.Round(userState.InsideTemp * (1 + jitterTemp), 2);
+
+
+                // ===== Вологість =====
+                if (userState.InsideHumidity > 30)
+                    userState.InsideHumidity -= 0.05;
+
+                double targetHumidity = userState.IsVentilationOn
+                    ? (userState.OutsideHumidity ?? 50.0)
+                    : 50.0;
+
+                // Джиттер вологості (завжди)
+                double jitterHumidity = (_random.NextDouble() * 0.002) - 0.001;
+                userState.InsideHumidity = Math.Round(userState.InsideHumidity * (1 + jitterHumidity), 1);
+
+                userState.InsideHumidity = Math.Round(userState.InsideHumidity, 1);
+
+                // Збереження у БД
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var user = context.Users.FirstOrDefault(u => u.Username == username);
+
+                    if (user != null)
+                    {
+                        var reading = new GreenhouseReading
+                        {
+                            Timestamp = DateTime.UtcNow,
+                            Temperature = userState.InsideTemp,
+                            Humidity = userState.InsideHumidity,
+                            Light = userState.InsideLight,
+                            UserId = user.Id
+                        };
+
+                        context.Readings.Add(reading);
+                        context.SaveChanges();
+                    }
+                }
+            }
         }
 
         private void AddLog(string msg)
         {
-            // Додаємо в початок списку
             _logs.Insert(0, $"[{DateTime.Now:HH:mm:ss}] {msg}");
-            // Тримаємо тільки останні 50 записів
             if (_logs.Count > 50) _logs.RemoveAt(_logs.Count - 1);
         }
 
-        private async Task FetchWeather()
+        private async Task FetchWeatherForState(GreenhouseState state, string username)
         {
             try
             {
-                // ВАЖЛИВО: Використовуємо CultureInfo.InvariantCulture, щоб координати були з крапкою (50.27), а не комою
-                string latStr = _state.Latitude.ToString(CultureInfo.InvariantCulture);
-                string lonStr = _state.Longitude.ToString(CultureInfo.InvariantCulture);
+                string latStr = state.Latitude.ToString(CultureInfo.InvariantCulture);
+                string lonStr = state.Longitude.ToString(CultureInfo.InvariantCulture);
 
                 string url = $"https://api.open-meteo.com/v1/forecast?" +
                              $"latitude={latStr}&longitude={lonStr}" +
@@ -122,34 +203,30 @@ namespace SmartGreenhouse.Web.Services
                              $"&timezone=UTC";
 
                 using var resp = await _http.GetAsync(url);
-                if (!resp.IsSuccessStatusCode) 
+                if (!resp.IsSuccessStatusCode)
                 {
-                    AddLog($"Weather API Error: {resp.StatusCode}");
+                    AddLog($"[{username}] Weather API Error: {resp.StatusCode}");
                     return;
                 }
 
                 using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
                 var root = doc.RootElement;
 
-                // Температура
                 if (root.GetProperty("current_weather").TryGetProperty("temperature", out var t))
-                {
-                    _state.OutsideTemp = t.GetDouble();
-                }
+                    state.OutsideTemp = t.GetDouble();
 
-                // Інші показники (беремо першу годину для простоти)
                 var hourly = root.GetProperty("hourly");
                 if (hourly.TryGetProperty("relativehumidity_2m", out var rh) && rh.GetArrayLength() > 0)
-                    _state.OutsideHumidity = rh[0].GetDouble();
-                
-                if (hourly.TryGetProperty("shortwave_radiation", out var sr) && sr.GetArrayLength() > 0)
-                    _state.OutsideIlluminance = sr[0].GetDouble() * 120.0;
+                    state.OutsideHumidity = rh[0].GetDouble();
 
-                AddLog($"Weather updated from API: T={_state.OutsideTemp}°C");
+                if (hourly.TryGetProperty("shortwave_radiation", out var sr) && sr.GetArrayLength() > 0)
+                    state.OutsideIlluminance = sr[0].GetDouble() * 120.0;
+
+                AddLog($"[{username}] Weather updated: T={state.OutsideTemp}°C, H={state.OutsideHumidity}%, L={state.OutsideIlluminance}lx");
             }
             catch (Exception ex)
             {
-                AddLog($"Weather API Exception: {ex.Message}");
+                AddLog($"[{username}] Weather API Exception: {ex.Message}");
             }
         }
 

@@ -3,30 +3,134 @@
     ViewData["Title"] = "Login";
 }
 
-<h2>Login</h2>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+        margin: 0;
+        padding: 0;
+    }
 
-<form asp-action="Login" method="post">
-    <div class="form-group" style="width: 300px;">
-        <label asp-for="Username">Username</label>
-        <input asp-for="Username" class="form-control" />
-        <span asp-validation-for="Username" class="text-danger"></span>
+    .register-container {
+        max-width: 500px;
+        margin: 50px auto;
+        background: #ffffff;
+        padding: 35px 40px;
+        border-radius: 18px;
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.12);
+    }
+
+    h2 {
+        text-align: center;
+        font-size: 2rem;
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 25px;
+    }
+
+    label {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        border: 1px solid #cfd8dc;
+        font-size: 1.05rem;
+        box-sizing: border-box;
+        transition: 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #43a047;
+        box-shadow: 0 0 6px rgba(67,160,71,0.3);
+        outline: none;
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        background-color: #43a047;
+        border: none;
+        color: #fff;
+        font-weight: bold;
+        transition: 0.3s;
+        cursor: pointer;
+        box-shadow: 0px 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-primary:hover {
+        background-color: #2e7d32;
+    }
+
+    .text-danger {
+        font-size: 0.9rem;
+        color: #d32f2f !important;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 1rem;
+    }
+
+    .login-link a {
+        color: #2980b9;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .login-link a:hover {
+        color: #e67e22;
+    }
+</style>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg" style="width: 380px; border-radius: 16px;">
+        <div class="card-body p-4">
+
+            <h3 class="text-center mb-4" style="font-weight: 600;">Login</h3>
+
+            <form asp-action="Login" method="post">
+
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label fw-semibold">Username</label>
+                    <input asp-for="Username" class="form-control" style="border-radius: 10px;" />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                    <input asp-for="Password" type="password" class="form-control" style="border-radius: 10px;" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-2" style="border-radius: 10px; padding: 10px;">
+                    Login
+                </button>
+
+            </form>
+
+            <div class="text-center mt-3">
+                <span class="text-muted">Or sign in with</span>
+                <div class="mt-2">
+                    <a asp-controller="ExternalAuth" asp-action="GoogleLogin"
+                       class="btn btn-outline-danger w-100"
+                       style="border-radius: 10px; padding: 8px;">
+                        <i class="bi bi-google"></i> Sign in with Google
+                    </a>
+                </div>
+            </div>
+
+        </div>
     </div>
-
-    <div class="form-group" style="width: 300px; margin-top: 10px;">
-        <label asp-for="Password">Password</label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-
-    <div class="form-group" style="margin-top: 20px;">
-        <button type="submit" class="btn btn-primary">Login</button>
-    </div>
-</form>
-
-<p style="margin-top: 15px;">
-    Or sign in with Google: 
-    <a asp-controller="ExternalAuth" asp-action="GoogleLogin">Sign in with Google</a>
-</p>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SmartGreenhouse.Web.Services;
 using SmartGreenhouse.Web.Models; // Потрібно, якщо якісь моделі використовуються тут
+using Microsoft.EntityFrameworkCore;
+using SmartGreenhouse.Web.Data; // тут буде AppDbContext
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +17,11 @@ builder.Services.AddControllersWithViews();
 // [ВАЖЛИВО] Реєструємо сховище користувачів (Singleton = одна база в пам'яті на всіх)
 builder.Services.AddSingleton<UserStore>();
 
-// [ВАЖЛИВО] Реєструємо сервіс теплиці (Singleton = одна теплиця на всіх)
+// [ВАЖЛИВО] Реєструємо сервіс теплиці (не Singleton = НЕ одна теплиця на всіх)
 builder.Services.AddSingleton<ISensorService, SensorService>();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=SmartGreenhouse.db"));
 
 // =========================================================
 // 2. НАЛАШТУВАННЯ АВТОРИЗАЦІЇ ТА СЕСІЙ
