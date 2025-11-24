@@ -32,3 +32,7 @@ secrets.json
 SmartGreenhouse.Web/SmartGreenhouse.db
 
 SmartGreenhouse.Web/appsettings.json
+
+nupkgs/
+
+greenhouse.log
