@@ -1,0 +1,11 @@
+nohup: ignoring input
+Using launch settings from /vagrant/SmartGreenhouse.Web/Properties/launchSettings.json...
+Building...
+Unhandled exception: System.ComponentModel.Win32Exception (13): An error occurred trying to start process '/vagrant/SmartGreenhouse.Web/bin/Debug/net9.0/SmartGreenhouse.Web' with working directory '/vagrant/SmartGreenhouse.Web'. Permission denied
+   at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32& stdinFd, Int32& stdoutFd, Int32& stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at Microsoft.DotNet.Cli.Utils.Command.Execute(Action`1 processStarted)
+   at Microsoft.DotNet.Tools.Run.RunCommand.Execute()
+   at System.CommandLine.Invocation.InvocationPipeline.Invoke(ParseResult parseResult)
+   at System.CommandLine.ParseResult.Invoke()
+   at Microsoft.DotNet.Cli.Program.ProcessArgs(String[] args, TimeSpan startupTime, ITelemetry telemetryClient)

@@ -24,4 +24,11 @@ publish/
 
 # Vagrant
 .vagrant/
+
+.vagrant/
 secrets.json
+
+# Ігноруємо локальну базу даних
+SmartGreenhouse.Web/SmartGreenhouse.db
+
+SmartGreenhouse.Web/appsettings.json
