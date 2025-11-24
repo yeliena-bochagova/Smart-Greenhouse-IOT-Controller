@@ -3,7 +3,8 @@ using SmartGreenhouse.Web.Services;
 using SmartGreenhouse.Web.Models; // Потрібно, якщо якісь моделі використовуються тут
 using Microsoft.EntityFrameworkCore;
 using SmartGreenhouse.Web.Data; // тут буде AppDbContext
-
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,7 @@ builder.Services.AddControllersWithViews();
 // [ВАЖЛИВО] Реєструємо сховище користувачів (Singleton = одна база в пам'яті на всіх)
 builder.Services.AddSingleton<UserStore>();
 
-// [ВАЖЛИВО] Реєструємо сервіс теплиці (не Singleton = НЕ одна теплиця на всіх)
+// [ВАЖЛИВО] Реєструємо сервіс теплиці (НЕ одна теплиця на всіх)
 builder.Services.AddSingleton<ISensorService, SensorService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -28,14 +29,24 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // =========================================================
 
 // Налаштування Cookies (Сучасний спосіб входу)
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        // Якщо незалогінений юзер лізе в теплицю -> кидаємо його на логін
-        options.LoginPath = "/Auth/Login"; 
-        options.LogoutPath = "/Auth/Logout";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-    });
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    // Якщо незалогінений юзер лізе в теплицю -> кидаємо його на логін
+    options.LoginPath = "/Auth/Login"; 
+    options.LogoutPath = "/Auth/Logout";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+})
+.AddGoogle(options =>
+{
+    // Беремо ClientId та ClientSecret з appsettings.json
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    options.CallbackPath = "/signin-google"; // стандартний шлях для Google OAuth
+});
 
 // Налаштування Сесій (Для сумісності зі старим кодом Subroutine1/2)
 builder.Services.AddDistributedMemoryCache();

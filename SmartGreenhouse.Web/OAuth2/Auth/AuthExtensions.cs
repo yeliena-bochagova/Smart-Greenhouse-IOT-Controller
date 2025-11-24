@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.Google;
 
 public static class AuthExtensions
 {
@@ -12,23 +12,14 @@ public static class AuthExtensions
             .AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = "Google";
+                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
             })
             .AddCookie()
-            .AddOpenIdConnect("Google", options =>
+            .AddGoogle(options =>
             {
                 options.ClientId = googleAuth["ClientId"];
                 options.ClientSecret = googleAuth["ClientSecret"];
-                options.Authority = "https://accounts.google.com";
-                options.ResponseType = "code";
-
-                options.Scope.Add("openid");
-                options.Scope.Add("profile");
-                options.Scope.Add("email");
-
-                options.SaveTokens = true;
-
-                options.GetClaimsFromUserInfoEndpoint = true;
+                options.CallbackPath = "/signin-google"; // стандартний шлях
             });
 
         return services;
