@@ -7,71 +7,111 @@ namespace SmartGreenhouse.Web.Data
     {
         public static void Initialize(AppDbContext context)
         {
-            context.Database.Migrate();
-
-            // User
-            if (!context.Users.Any())
+            // 1. Розумне застосування міграцій
+            // Якщо це In-Memory база (для тестів), міграції не потрібні, просто створюємо структуру.
+            // Якщо це справжня SQL база - накочуємо міграції.
+            if (context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
             {
-                var user = new User
-                {
-                    Username = "admin",
-                    Email = "admin@example.com",
-                    FullName = "Administrator",
-                    PasswordHash = "",
-                };
-
-                context.Users.Add(user);
-                context.SaveChanges();
+                context.Database.EnsureCreated();
+            }
+            else
+            {
+                // Для SQLite, SQL Server, Postgres
+                context.Database.Migrate();
             }
 
-            var admin = context.Users.First();
-
-            // Plant
-            if (!context.Plants.Any())
+            // 2. Якщо база вже має дані (рослини), нічого не робимо
+            if (context.Plants.Any())
             {
-                context.Plants.Add(new Plant
-                {
-                    Name = "Default Plant",
-                    Description = "Automatically added"
-                });
-
-                context.SaveChanges();
+                return;
             }
 
-            var plant = context.Plants.First();
+            // ==========================================
+            // 3. Створення даних
+            // ==========================================
 
-            // Sensor
-            if (!context.Sensors.Any())
+            // --- Користувач ---
+            var user = new User
             {
-                context.Sensors.Add(new Sensor
-                {
-                    Name = "Main Sensor",
-                    UserId = admin.Id,
-                    PlantId = plant.Id,
-                    MinTemperature = 18,
-                    MaxTemperature = 30,
-                    MinHumidity = 30,
-                    MaxHumidity = 70,
-                    MinLight = 100,
-                    MaxLight = 1000
-                });
+                Username = "admin",
+                Email = "admin@greenhouse.com",
+                FullName = "Administrator",
+                PasswordHash = "secret_hash", // У реальному проекті тут має бути хешування
+                Role = "Admin"
+            };
+            context.Users.Add(user);
+            context.SaveChanges(); // Зберігаємо, щоб отримати ID
 
-                context.SaveChanges();
+            // --- Рослини ---
+            var tomatoes = new Plant { Name = "Помідори Черрі", Description = "Солодкий сорт для салатів" };
+            var cucumbers = new Plant { Name = "Огірки", Description = "Гібридний сорт" };
+            var basil = new Plant { Name = "Базилік", Description = "Фіолетовий запашний" };
+
+            context.Plants.AddRange(tomatoes, cucumbers, basil);
+            context.SaveChanges();
+
+            // --- Сенсори ---
+            var sensors = new Sensor[]
+            {
+                new Sensor 
+                { 
+                    Name = "Датчик #1 (Помідори)", 
+                    PlantId = tomatoes.Id, 
+                    UserId = user.Id, 
+                    MinTemperature = 18, MaxTemperature = 28, 
+                    MinHumidity = 60, MaxHumidity = 80,
+                    MinLight = 200, MaxLight = 800
+                },
+                new Sensor 
+                { 
+                    Name = "Датчик #2 (Огірки)", 
+                    PlantId = cucumbers.Id, 
+                    UserId = user.Id, 
+                    MinTemperature = 20, MaxTemperature = 30, 
+                    MinHumidity = 70, MaxHumidity = 90,
+                    MinLight = 150, MaxLight = 700
+                },
+                new Sensor 
+                { 
+                    Name = "Світловий сенсор (Базилік)", 
+                    PlantId = basil.Id, 
+                    UserId = user.Id, 
+                    MinLight = 300, MaxLight = 800,
+                    // Заповнюємо інші поля дефолтними значеннями, щоб не було помилок
+                    MinTemperature = 15, MaxTemperature = 35,
+                    MinHumidity = 40, MaxHumidity = 90
+                }
+            };
+
+            context.Sensors.AddRange(sensors);
+            context.SaveChanges();
+
+            // --- Історія вимірювань (Measurements) ---
+            // Генеруємо дані за останній тиждень для графіків
+            var random = new Random();
+            var measurements = new List<Measurement>();
+            var startDate = DateTime.UtcNow.AddDays(-7); 
+
+            foreach (var sensor in sensors)
+            {
+                // Генеруємо по 50 записів на кожен сенсор
+                for (int i = 0; i < 50; i++) 
+                {
+                    measurements.Add(new Measurement
+                    {
+                        SensorId = sensor.Id,
+                        UserId = user.Id,
+                        Timestamp = startDate.AddHours(i * 3 + random.NextDouble()), // розкид у часі
+                        Temperature = 20 + random.NextDouble() * 10, // 20...30 градусів
+                        Humidity = 50 + random.NextDouble() * 30,    // 50...80%
+                        Light = 100 + random.NextDouble() * 500,     // 100...600 люкс
+                        Value = 0 // Якщо це поле використовується окремо
+                    });
+                }
             }
 
-            var sensor = context.Sensors.First();
-
-            if (!context.Measurements.Any())
-            {
-                context.Measurements.Add(new Measurement
-                {
-                    SensorId = sensor.Id,
-                    Timestamp = DateTime.Now,
-                    Value = 42.5
-                });
-
-                context.SaveChanges();
-            }
+            context.Measurements.AddRange(measurements);
+            context.SaveChanges();
         }
     }
 }

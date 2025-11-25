@@ -11,8 +11,8 @@ using SmartGreenhouse.Web.Data;
 namespace SmartGreenhouse.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251124222016_AddSensorNameAndPlantId")]
-    partial class AddSensorNameAndPlantId
+    [Migration("20251125115716_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,7 +53,7 @@ namespace SmartGreenhouse.Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Readings");
+                    b.ToTable("GreenhouseReading");
                 });
 
             modelBuilder.Entity("SmartGreenhouse.Web.Models.GreenhouseSettings", b =>
@@ -91,11 +91,47 @@ namespace SmartGreenhouse.Web.Migrations
                     b.ToTable("Settings");
                 });
 
+            modelBuilder.Entity("SmartGreenhouse.Web.Models.Measurement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Humidity")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Light")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("SensorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Temperature")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Measurements");
+                });
+
             modelBuilder.Entity("SmartGreenhouse.Web.Models.Plant", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -134,7 +170,7 @@ namespace SmartGreenhouse.Web.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("PlantId")
+                    b.Property<int?>("PlantId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("UserId")
@@ -168,6 +204,10 @@ namespace SmartGreenhouse.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -212,17 +252,17 @@ namespace SmartGreenhouse.Web.Migrations
 
             modelBuilder.Entity("SmartGreenhouse.Web.Models.Sensor", b =>
                 {
-                    b.HasOne("SmartGreenhouse.Web.Models.Plant", null)
+                    b.HasOne("SmartGreenhouse.Web.Models.Plant", "Plant")
                         .WithMany("Sensors")
-                        .HasForeignKey("PlantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PlantId");
 
                     b.HasOne("SmartGreenhouse.Web.Models.User", "User")
                         .WithMany("Sensors")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Plant");
 
                     b.Navigation("User");
                 });

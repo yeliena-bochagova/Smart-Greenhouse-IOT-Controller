@@ -1,27 +1,42 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore; 
 using SmartGreenhouse.Web.Data;
 using SmartGreenhouse.Web.Models;
 using System.Linq;
 
-public class MeasurementsController : Controller
+namespace SmartGreenhouse.Web.Controllers
 {
-    private readonly AppDbContext _context;
-
-    public MeasurementsController(AppDbContext context)
+    public class MeasurementsController : Controller
     {
-        _context = context;
-    }
+        private readonly AppDbContext _context;
 
-    public IActionResult Index()
-    {
-        var measurements = _context.Measurements.ToList();
-        return View(measurements);
-    }
+        public MeasurementsController(AppDbContext context)
+        {
+            _context = context;
+        }
 
-    public IActionResult Details(int id)
-    {
-        var measurement = _context.Measurements.FirstOrDefault(x => x.Id == id);
-        if (measurement == null) return NotFound();
-        return View(measurement);
+        public IActionResult Index()
+        {
+            var measurements = _context.Measurements
+                .Include(m => m.Sensor)
+                .ThenInclude(s => s.Plant)
+                .OrderByDescending(m => m.Timestamp) 
+                .Take(100) 
+                .ToList();
+
+            return View(measurements);
+        }
+
+        public IActionResult Details(int id)
+        {
+            var measurement = _context.Measurements
+                .Include(m => m.Sensor)         
+                .ThenInclude(s => s.Plant)       
+                .FirstOrDefault(x => x.Id == id);
+
+            if (measurement == null) return NotFound();
+            
+            return View(measurement);
+        }
     }
 }

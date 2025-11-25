@@ -1,3 +1,62 @@
-@model Plant
+@model SmartGreenhouse.Web.Models.Plant
 
-<h2>@Model.Name</h2>
+@{
+    ViewData["Title"] = "Details";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h3 class="mb-0">🌱 @Model.Name</h3>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Опис:</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+
+                <dt class="col-sm-3">ID Рослини:</dt>
+                <dd class="col-sm-9">@Model.Id</dd>
+            </dl>
+
+            <hr />
+
+            <h4>📡 Підключені сенсори</h4>
+            @if (Model.Sensors != null && Model.Sensors.Any())
+            {
+                <table class="table table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th>Назва сенсора</th>
+                            <th>Параметри (Мін/Макс)</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sensor in Model.Sensors)
+                        {
+                            <tr>
+                                <td>@sensor.Name</td>
+                                <td>
+                                    <span class="badge bg-info text-dark">Temp: @sensor.MinTemperature°C - @sensor.MaxTemperature°C</span>
+                                    <span class="badge bg-warning text-dark">Hum: @sensor.MinHumidity% - @sensor.MaxHumidity%</span>
+                                </td>
+                                <td>
+                                    <a href="/Sensors/Details/@sensor.Id" class="btn btn-sm btn-link">Переглянути сенсор</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    До цієї рослини ще не підключено жодного сенсора.
+                </div>
+            }
+        </div>
+        <div class="card-footer">
+            <a href="/Plants/Index" class="btn btn-secondary">← Назад до списку</a>
+        </div>
+    </div>
+</div>

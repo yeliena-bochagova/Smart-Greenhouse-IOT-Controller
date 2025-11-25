@@ -1,34 +1,80 @@
-@model List<SmartGreenhouse.Web.Models.SearchResultViewModel>
+@model IEnumerable<SmartGreenhouse.Web.Models.Measurement>
 
-<h2>📊 Результати пошуку</h2>
-
-<a asp-action="Index" class="btn btn-secondary mb-3">⬅ Назад до пошуку</a>
-
-@if (!Model.Any())
-{
-    <div class="alert alert-warning">Результатів немає.</div>
+@{
+    ViewData["Title"] = "Результати пошуку";
 }
-else
-{
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Час</th>
-                <th>Сенсор</th>
-                <th>Рослина</th>
-                <th>Значення</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.Timestamp</td>
-                    <td>@item.SensorName</td>
-                    <td>@item.PlantName</td>
-                    <td>@item.Value</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>📊 Результати пошуку</h2>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Новий пошук
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning shadow-sm border-0">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-circle"></i> Нічого не знайдено</h4>
+            <p>Спробуйте змінити параметри фільтрації, наприклад, розширити діапазон дат.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <span>Знайдено записів: <strong>@Model.Count()</strong></span>
+                <small class="text-white-50">Показано топ-500</small>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0 align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start ps-4">Час</th>
+                            <th class="text-start">Сенсор / Рослина</th>
+                            <th>Температура</th>
+                            <th>Вологість</th>
+                            <th>Світло</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-start ps-4">
+                                    <div class="fw-bold">@item.Timestamp.ToLocalTime().ToString("d")</div>
+                                    <small class="text-muted">@item.Timestamp.ToLocalTime().ToString("T")</small>
+                                </td>
+                                <td class="text-start">
+                                    <div class="fw-bold text-primary">@item.Sensor?.Name</div>
+                                    <small class="text-muted">@(item.Sensor?.Plant?.Name ?? "-")</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                        @item.Temperature.ToString("F1") °C
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info">
+                                        @item.Humidity.ToString("F1") %
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">
+                                        @item.Light.ToString("F0") Lx
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="/Measurements/Details/@item.Id" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

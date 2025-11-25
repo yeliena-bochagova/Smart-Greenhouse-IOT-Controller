@@ -204,6 +204,10 @@ namespace SmartGreenhouse.Web.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -245,7 +249,7 @@ namespace SmartGreenhouse.Web.Migrations
 
             modelBuilder.Entity("SmartGreenhouse.Web.Models.Sensor", b =>
                 {
-                    b.HasOne("SmartGreenhouse.Web.Models.Plant", null)
+                    b.HasOne("SmartGreenhouse.Web.Models.Plant", "Plant")
                         .WithMany("Sensors")
                         .HasForeignKey("PlantId");
 
@@ -254,6 +258,8 @@ namespace SmartGreenhouse.Web.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Plant");
 
                     b.Navigation("User");
                 });

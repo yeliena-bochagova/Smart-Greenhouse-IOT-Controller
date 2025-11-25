@@ -1,6 +1,96 @@
-@model Measurement
+@model SmartGreenhouse.Web.Models.Measurement
 
-<h2>Measurement</h2>
-<p>Sensor: @Model.SensorId</p>
-<p>Value: @Model.Value</p>
-<p>Date: @Model.Timestamp</p>
+@{
+    ViewData["Title"] = "Деталі вимірювання";
+}
+
+<div class="container mt-5">
+    
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Запис #@Model.Id</h2>
+            <p class="text-muted">
+                <i class="bi bi-clock"></i> @Model.Timestamp.ToLocalTime().ToString("F")
+            </p>
+        </div>
+        <div>
+            <a href="/Measurements/Index" class="btn btn-outline-secondary">← Назад до списку</a>
+        </div>
+    </div>
+
+    <!-- Основные показатели (Карточки) -->
+    <div class="row g-4 mb-4">
+        <!-- Температура -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background-color: #fff5f5;">
+                <div class="card-body text-center p-4">
+                    <div class="text-danger mb-2" style="font-size: 2rem;">
+                        <i class="bi bi-thermometer-sun"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Температура</h5>
+                    <h2 class="display-4 fw-bold text-danger">@Model.Temperature.ToString("F1")°C</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Влажность -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background-color: #f0faff;">
+                <div class="card-body text-center p-4">
+                    <div class="text-info mb-2" style="font-size: 2rem;">
+                        <i class="bi bi-droplet-half"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Вологість</h5>
+                    <h2 class="display-4 fw-bold text-info">@Model.Humidity.ToString("F1")%</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Свет -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="background-color: #fffbf0;">
+                <div class="card-body text-center p-4">
+                    <div class="text-warning mb-2" style="font-size: 2rem;">
+                        <i class="bi bi-brightness-high-fill"></i>
+                    </div>
+                    <h5 class="card-title text-muted">Освітлення</h5>
+                    <h2 class="display-4 fw-bold text-warning">@Model.Light.ToString("F0") Lx</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контекстная информация -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold">
+            ℹ️ Джерело даних
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>📡 Сенсор:</strong> 
+                    @if (Model.Sensor != null)
+                    {
+                        <a href="/Sensors/Details/@Model.SensorId" class="text-decoration-none">@Model.Sensor.Name</a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Невідомий</span>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <strong>🌿 Рослина:</strong>
+                    @if (Model.Sensor?.Plant != null)
+                    {
+                        <a href="/Plants/Details/@Model.Sensor.PlantId" class="text-decoration-none">@Model.Sensor.Plant.Name</a>
+                    }
+                    else
+                    {
+                        <span class="text-muted text-decoration-line-through">Не прив'язано</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

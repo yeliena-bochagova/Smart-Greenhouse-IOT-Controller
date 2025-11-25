@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartGreenhouse.Web.Data;
 using SmartGreenhouse.Web.Models;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SmartGreenhouse.Web.Controllers
 {
@@ -15,50 +16,60 @@ namespace SmartGreenhouse.Web.Controllers
             _context = context;
         }
 
-        // Стартовая страница поиска — форма
-        public IActionResult Index()
+        // GET: Search/Index
+        public async Task<IActionResult> Index()
         {
-            var sensors = _context.Sensors.ToList();
+            var sensors = await _context.Sensors.ToListAsync();
             return View(new SearchViewModel { Sensors = sensors });
         }
 
+        // POST: Search/Results
         [HttpPost]
-        public IActionResult Results(SearchViewModel model)
+        public async Task<IActionResult> Results(SearchViewModel model)
         {
-            // JOIN Measurements → Sensors → Plants
-            var query =
-                from m in _context.Measurements
-                join s in _context.Sensors on m.SensorId equals s.Id
-                join p in _context.Plants on s.PlantId equals p.Id
-                select new SearchResultViewModel
-                {
-                    Timestamp = m.Timestamp,
-                    SensorName = s.Name,
-                    PlantName = p.Name,
-                    Value = m.Value
-                };
+            // 1. Починаємо будувати запит
+            var query = _context.Measurements
+                .Include(m => m.Sensor)
+                .ThenInclude(s => s.Plant)
+                .AsQueryable();
 
-            // Фильтры
+            // 2. Застосовуємо фільтри
             if (model.SensorId.HasValue)
             {
-                var sensorName = _context.Sensors
-                                         .First(s => s.Id == model.SensorId.Value).Name;
-                query = query.Where(x => x.SensorName == sensorName);
+                query = query.Where(m => m.SensorId == model.SensorId.Value);
             }
 
             if (model.FromDate.HasValue)
-                query = query.Where(x => x.Timestamp >= model.FromDate.Value);
+            {
+                // Початок дня
+                query = query.Where(m => m.Timestamp >= model.FromDate.Value);
+            }
 
             if (model.ToDate.HasValue)
-                query = query.Where(x => x.Timestamp <= model.ToDate.Value);
+            {
+                // Кінець дня (додаємо 23:59:59, щоб захопити весь день)
+                var toDateEnd = model.ToDate.Value.AddDays(1).AddTicks(-1);
+                query = query.Where(m => m.Timestamp <= toDateEnd);
+            }
 
             if (model.MinValue.HasValue)
-                query = query.Where(x => x.Value >= model.MinValue.Value);
+            {
+                // Шукаємо по температурі (або можна змінити на Value)
+                query = query.Where(m => m.Temperature >= model.MinValue.Value);
+            }
 
             if (model.MaxValue.HasValue)
-                query = query.Where(x => x.Value <= model.MaxValue.Value);
+            {
+                query = query.Where(m => m.Temperature <= model.MaxValue.Value);
+            }
 
-            return View(query.ToList());
+            // 3. Виконуємо запит (сортуємо: нові зверху, ліміт 500)
+            var results = await query
+                .OrderByDescending(m => m.Timestamp)
+                .Take(500)
+                .ToListAsync();
+
+            return View(results);
         }
     }
 }

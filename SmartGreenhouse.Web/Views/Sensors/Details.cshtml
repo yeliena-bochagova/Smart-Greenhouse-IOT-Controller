@@ -1,4 +1,95 @@
-@model Sensor
+@model SmartGreenhouse.Web.Models.Sensor
 
-<h2>@Model.Name</h2>
-<p>Plant ID: @Model.PlantId</p>
+@{
+    ViewData["Title"] = "Sensor Details";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">📡 @Model.Name</h3>
+            <span class="badge bg-light text-dark">ID: @Model.Id</span>
+        </div>
+        
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-5 border-end">
+                    <h5 class="card-title text-muted mb-4">📋 Информація</h5>
+                    
+                    <div class="mb-3">
+                        <strong>🌿 Рослина:</strong>
+                        @if (Model.Plant != null)
+                        {
+                            <a href="/Plants/Details/@Model.PlantId" class="text-decoration-none fw-bold text-success fs-5 ms-2">
+                                @Model.Plant.Name
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">Немає прив'язки</span>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>👤 Власник:</strong>
+                        <div class="ms-2">@Model.User?.FullName</div>
+                        <div class="ms-2 text-muted small">@Model.User?.Email</div>
+                    </div>
+                </div>
+
+                <div class="col-md-7">
+                    <h5 class="card-title text-muted mb-4">⚙️ Налаштування порогів (Норма)</h5>
+                    <div class="row g-3">
+                        
+                        <div class="col-12">
+                            <div class="p-3 border rounded bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fs-4 me-2">🌡️</span> <strong>Температура</strong>
+                                </div>
+                                <div>
+                                    <span class="badge bg-primary fs-6">Min: @Model.MinTemperature°C</span>
+                                    <span class="text-muted mx-2">—</span>
+                                    <span class="badge bg-danger fs-6">Max: @Model.MaxTemperature°C</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="p-3 border rounded bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fs-4 me-2">💧</span> <strong>Вологість</strong>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info text-dark fs-6">Min: @Model.MinHumidity%</span>
+                                    <span class="text-muted mx-2">—</span>
+                                    <span class="badge bg-info text-dark fs-6">Max: @Model.MaxHumidity%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 border rounded bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fs-4 me-2">☀️</span> <strong>Освітлення</strong>
+                                </div>
+                                <div>
+                                    <span class="badge bg-warning text-dark fs-6">Min: @Model.MinLight Lx</span>
+                                    <span class="text-muted mx-2">—</span>
+                                    <span class="badge bg-warning text-dark fs-6">Max: @Model.MaxLight Lx</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-footer bg-light">
+            <a href="/Sensors/Index" class="btn btn-secondary">← Назад до списку</a>
+            @if (Model.PlantId != null)
+            {
+                <a href="/Plants/Details/@Model.PlantId" class="btn btn-success float-end">Перейти до рослини →</a>
+            }
+        </div>
+    </div>
+</div>

@@ -1,13 +1,59 @@
-@model List<Sensor>
+@model IEnumerable<SmartGreenhouse.Web.Models.Sensor>
 
-<h2>Sensors</h2>
-
-<table class="table">
-@foreach (var s in Model)
-{
-    <tr>
-        <td>@s.Name</td>
-        <td><a href="/Sensors/Details/@s.Id">Details</a></td>
-    </tr>
+@{
+    ViewData["Title"] = "Sensors";
 }
-</table>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>📡 Усі датчики</h2>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Название</th>
+                        <th>Прив'язка до рослини</th>
+                        <th>Діапазони (Норма)</th>
+                        <th class="text-end">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">
+                                <i class="bi bi-hdd-network text-primary me-2"></i>@item.Name
+                            </td>
+                            <td>
+                                @if (item.Plant != null)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-flower1"></i> @item.Plant.Name
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Не прив'язано</span>
+                                }
+                            </td>
+                            <td>
+                                <div style="font-size: 0.85rem;">
+                                    <div><span class="text-danger">🌡️</span> @item.MinTemperature - @item.MaxTemperature °C</div>
+                                    <div><span class="text-info">💧</span> @item.MinHumidity - @item.MaxHumidity %</div>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <a href="/Sensors/Details/@item.Id" class="btn btn-sm btn-outline-primary">
+                                    Докладніше
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

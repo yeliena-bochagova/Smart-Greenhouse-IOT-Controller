@@ -8,15 +8,43 @@ using Microsoft.AspNetCore.Authentication.Google;
 var builder = WebApplication.CreateBuilder(args);
 
 // =========================================================
-// 1. РЕЄСТРАЦІЯ СЕРВІСІВ
+// 1. РЕЄСТРАЦІЯ СЕРВІСІВ ТА ВИБІР БД
 // =========================================================
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<UserStore>();
 builder.Services.AddSingleton<ISensorService, SensorService>();
 
+// ---> ДОДАНО: Реєстрація фонового генератора даних <---
+// Цей сервіс працюватиме незалежно від дій користувача
+builder.Services.AddHostedService<DataGeneratorService>();
+
+// Отримуємо тип провайдера з конфігурації (appsettings.json)
+var dbProvider = builder.Configuration["DatabaseProvider"];
+var connectionString = builder.Configuration.GetConnectionString(dbProvider);
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=SmartGreenhouse.db"));
+{
+    switch (dbProvider)
+    {
+        case "Sqlite":
+            options.UseSqlite(connectionString);
+            break;
+        case "SqlServer":
+            options.UseSqlServer(connectionString);
+            break;
+        case "Postgres":
+            // Для PostgreSQL може знадобитися увімкнення legacy timestamp behavior
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+            options.UseNpgsql(connectionString);
+            break;
+        case "InMemory":
+            options.UseInMemoryDatabase(connectionString ?? "GreenhouseTestDb");
+            break;
+        default:
+            throw new Exception($"Unsupported database provider: {dbProvider}");
+    }
+});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -30,9 +58,14 @@ builder.Services.AddAuthentication(options =>
 })
 .AddGoogle(options =>
 {
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-    options.CallbackPath = "/signin-google";
+    // Перевірка на null, щоб не падало при відсутності ключів
+    var googleAuth = builder.Configuration.GetSection("Authentication:Google");
+    if (googleAuth.Exists())
+    {
+        options.ClientId = googleAuth["ClientId"];
+        options.ClientSecret = googleAuth["ClientSecret"];
+        options.CallbackPath = "/signin-google";
+    }
 });
 
 builder.Services.AddDistributedMemoryCache();
@@ -69,7 +102,9 @@ app.UseAuthorization();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    SeedData.Initialize(context);   // ← вот здесь правильно
+    
+    // Викликаємо наш новий ініціалізатор
+    SeedData.Initialize(context); 
 }
 
 // =========================================================

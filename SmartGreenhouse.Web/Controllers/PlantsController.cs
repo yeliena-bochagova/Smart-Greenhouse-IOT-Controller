@@ -1,27 +1,35 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SmartGreenhouse.Web.Data;
 using SmartGreenhouse.Web.Models;
 using System.Linq;
 
-public class PlantsController : Controller
+namespace SmartGreenhouse.Web.Controllers
 {
-    private readonly AppDbContext _context;
-
-    public PlantsController(AppDbContext context)
+    public class PlantsController : Controller
     {
-        _context = context;
-    }
+        private readonly AppDbContext _context;
 
-    public IActionResult Index()
-    {
-        var plants = _context.Plants.ToList();
-        return View(plants);
-    }
+        public PlantsController(AppDbContext context)
+        {
+            _context = context;
+        }
 
-    public IActionResult Details(int id)
-    {
-        var plant = _context.Plants.FirstOrDefault(p => p.Id == id);
-        if (plant == null) return NotFound();
-        return View(plant);
+        public IActionResult Index()
+        {
+            var plants = _context.Plants.ToList();
+            return View(plants);
+        }
+
+        public IActionResult Details(int id)
+        {
+            var plant = _context.Plants
+                .Include(p => p.Sensors) 
+                .FirstOrDefault(p => p.Id == id);
+
+            if (plant == null) return NotFound();
+            
+            return View(plant);
+        }
     }
 }

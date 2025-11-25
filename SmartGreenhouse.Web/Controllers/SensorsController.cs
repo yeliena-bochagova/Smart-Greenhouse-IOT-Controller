@@ -1,27 +1,42 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SmartGreenhouse.Web.Data;
 using SmartGreenhouse.Web.Models;
 using System.Linq;
+using System.Threading.Tasks;
 
-public class SensorsController : Controller
+namespace SmartGreenhouse.Web.Controllers
 {
-    private readonly AppDbContext _context;
-
-    public SensorsController(AppDbContext context)
+    public class SensorsController : Controller
     {
-        _context = context;
-    }
+        private readonly AppDbContext _context;
 
-    public IActionResult Index()
-    {
-        var sensors = _context.Sensors.ToList();
-        return View(sensors);
-    }
+        public SensorsController(AppDbContext context)
+        {
+            _context = context;
+        }
 
-    public IActionResult Details(int id)
-    {
-        var sensor = _context.Sensors.FirstOrDefault(s => s.Id == id);
-        if (sensor == null) return NotFound();
-        return View(sensor);
+        public async Task<IActionResult> Index()
+        {
+
+            var sensors = await _context.Sensors
+                .Include(s => s.Plant) 
+                .ToListAsync();
+            return View(sensors);
+        }
+
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var sensor = await _context.Sensors
+                .Include(s => s.Plant) 
+                .Include(s => s.User)  
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (sensor == null) return NotFound();
+
+            return View(sensor);
+        }
     }
 }
