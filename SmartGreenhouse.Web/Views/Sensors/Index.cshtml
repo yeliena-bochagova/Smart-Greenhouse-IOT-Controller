@@ -1,0 +1,13 @@
+@model List<Sensor>
+
+<h2>Sensors</h2>
+
+<table class="table">
+@foreach (var s in Model)
+{
+    <tr>
+        <td>@s.Name</td>
+        <td><a href="/Sensors/Details/@s.Id">Details</a></td>
+    </tr>
+}
+</table>

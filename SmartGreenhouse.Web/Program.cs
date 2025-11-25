@@ -1,37 +1,54 @@
+using SmartGreenhouse.Web.Services;
+using SmartGreenhouse.Web.Models;
+using Microsoft.EntityFrameworkCore;
+using SmartGreenhouse.Web.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-using SmartGreenhouse.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// =========================================================
+// 1. РЕЄСТРАЦІЯ СЕРВІСІВ
+// =========================================================
+
 builder.Services.AddControllersWithViews();
-
-// Додаємо наш сервіс UserStore
 builder.Services.AddSingleton<UserStore>();
+builder.Services.AddSingleton<ISensorService, SensorService>();
 
-// Налаштування аутентифікації
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=SmartGreenhouse.db"));
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
 .AddCookie(options =>
 {
-    options.LoginPath = "/Auth/Login"; // маршрут для логіну
+    options.LoginPath = "/Auth/Login"; 
+    options.LogoutPath = "/Auth/Logout";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 })
-.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+.AddGoogle(options =>
 {
-    // Введи свої ClientId/ClientSecret у appsettings.json або змінні оточення
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
-    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    options.CallbackPath = "/signin-google";
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// =========================================================
+// 2. PIPELINE
+// =========================================================
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -40,27 +57,27 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
+app.UseSession();
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.UseAuthentication(); // middleware аутентифікації
-app.UseAuthorization();  // middleware авторизації
+// =========================================================
+// 3. ІНІЦІАЛІЗАЦІЯ БД (SeedData)
+// =========================================================
 
-// Маршрути
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    SeedData.Initialize(context);   // ← вот здесь правильно
+}
+
+// =========================================================
+// 4. МАРШРУТИЗАЦІЯ
+// =========================================================
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Welcome}/{id?}");
-
-// Додатковий маршрут для Subroutine (задач)
-app.MapControllerRoute(
-    name: "subroutine",
-    pattern: "Subroutine/{action=Index}/{task?}",
-    defaults: new { controller = "Subroutine" });
-
-// Маршрути для Auth (Login/Logout/Register)
-app.MapControllerRoute(
-    name: "auth",
-    pattern: "Auth/{action=Login}/{id?}",
-    defaults: new { controller = "Auth" });
 
 app.Run();

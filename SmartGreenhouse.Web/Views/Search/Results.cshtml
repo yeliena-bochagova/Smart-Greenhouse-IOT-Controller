@@ -1,0 +1,34 @@
+@model List<SmartGreenhouse.Web.Models.SearchResultViewModel>
+
+<h2>📊 Результати пошуку</h2>
+
+<a asp-action="Index" class="btn btn-secondary mb-3">⬅ Назад до пошуку</a>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">Результатів немає.</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Час</th>
+                <th>Сенсор</th>
+                <th>Рослина</th>
+                <th>Значення</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Timestamp</td>
+                    <td>@item.SensorName</td>
+                    <td>@item.PlantName</td>
+                    <td>@item.Value</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

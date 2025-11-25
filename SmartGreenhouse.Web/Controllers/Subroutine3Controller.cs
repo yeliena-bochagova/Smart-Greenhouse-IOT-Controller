@@ -1,23 +1,29 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SmartGreenhouse.Web.Models;
+using SmartGreenhouse.Web.Services;
+using Microsoft.AspNetCore.Authorization; 
 
 namespace SmartGreenhouse.Web.Controllers
 {
-    [Authorize]
+    [Authorize] // Пускаємо тільки своїх
     public class Subroutine3Controller : Controller
     {
-        [HttpGet]
-        public IActionResult Index() => View(new SubroutineXModel());
+        private readonly ISensorService _service;
 
-        [HttpPost]
-        public IActionResult Index(SubroutineXModel model)
+        public Subroutine3Controller(ISensorService service)
         {
-            model.Output = model.Input?.Length.ToString() ?? "0";
-            return View(model);
+            _service = service;
         }
 
-        [HttpGet]
-        public IActionResult Description() => View();
+        public IActionResult Index()
+        {
+            // Отримуємо ім'я користувача (якщо він авторизований)
+            var username = User.Identity?.Name;
+
+            // Отримуємо список логів (це List<string>), передаємо ім'я користувача
+            var logs = _service.GetLogs(username);
+
+            // Передаємо його у View
+            return View(logs);
+        }
     }
 }

@@ -1,31 +1,200 @@
-@model dynamic
+@model UserProfileEditModel
 @{
-    ViewData["Title"] = "Profile";
+    ViewData["Title"] = "Редагування профілю";
 }
 
-<h2>Profile</h2>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+    }
 
-<div class="profile-info" style="max-width: 400px;">
-    <div class="info-item" style="margin-bottom: 10px;">
-        <strong>Username:</strong> @Model.Username
-    </div>
-    <div class="info-item" style="margin-bottom: 10px;">
-        <strong>Email:</strong> @Model.Email
-    </div>
-    <div class="info-item" style="margin-bottom: 10px;">
-        <strong>Phone:</strong> @Model.Phone
-    </div>
-    <div class="info-item" style="margin-bottom: 20px;">
-        <strong>Roles:</strong> @Model.Roles
+    .layout-grid {
+        max-width: 1150px;
+        margin: 40px auto;
+        display: flex;
+        gap: 40px;
+        align-items: flex-start;
+    }
+
+    /* Центральний білий блок */
+    .profile-container {
+        flex: 1;
+        background: #ffffff;
+        padding: 35px 40px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Права панель */
+    .side-actions {
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    label {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #cfd8dc;
+        font-size: 1rem;
+        transition: 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #43a047;
+        box-shadow: 0 0 4px rgba(67,160,71,0.3);
+        outline: none;
+    }
+
+    .btn-save {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        background-color: #43a047;
+        border: none;
+        color: #fff;
+        font-weight: bold;
+        transition: 0.3s;
+        cursor: pointer;
+        box-shadow: 0px 3px 8px rgba(0,0,0,0.15);
+        margin-top: 15px;
+    }
+
+    .btn-save:hover {
+        background-color: #2e7d32;
+    }
+
+    .btn-logout {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        background-color: #37474f;
+        border: none;
+        color: #fff;
+        font-weight: bold;
+        transition: 0.3s;
+        cursor: pointer;
+        box-shadow: 0px 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-logout:hover {
+        background-color: #263238;
+    }
+
+    .link-to-greenhouse {
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #ffffff;
+        text-decoration: none;
+        padding: 14px;
+        border-radius: 10px;
+        background: #0288d1;
+        box-shadow: 0px 3px 8px rgba(0,0,0,0.15);
+        transition: 0.3s;
+        display: block;
+    }
+
+    .link-to-greenhouse:hover {
+        background-color: #0277bd;
+    }
+
+    .text-danger {
+        color: #d32f2f !important;
+        font-size: 0.9rem;
+    }
+</style>
+
+
+<div class="layout-grid">
+
+    <!-- ЛІВА ЧАСТИНА -->
+    <div class="profile-container">
+        <h2>Вітаємо, <strong>@Model.Username</strong>!</h2>
+        <h2>Редагування профілю</h2>
+
+        <form method="post" asp-controller="Auth" asp-action="EditProfile">
+            @Html.AntiForgeryToken()
+
+            <div class="section-title">Особиста інформація</div>
+
+            <label asp-for="Username">Username</label>
+            <input asp-for="Username" class="form-control" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+
+            <label asp-for="FullName">Full Name</label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+
+            <label asp-for="Email">Email</label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+
+            <label asp-for="Phone">Phone</label>
+            <input asp-for="Phone" class="form-control" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+
+            <div class="section-title">Зміна паролю</div>
+
+            <label asp-for="Password">New Password</label>
+            <input asp-for="Password" class="form-control" type="password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+
+            <label asp-for="ConfirmPassword">Confirm New Password</label>
+            <input asp-for="ConfirmPassword" class="form-control" type="password" />
+            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+
+            <button type="submit" class="btn-save">Зберегти зміни</button>
+        </form>
     </div>
 
-    <form method="post" asp-action="Logout" style="margin-bottom: 20px;">
-        <button type="submit" class="btn btn-danger">Logout</button>
-    </form>
+    <!-- ПРАВА ЧАСТИНА -->
+    <div class="side-actions">
 
-    <div class="subroutines-links" style="margin-top: 10px;">
-        <a asp-controller="Subroutine1" asp-action="Index" style="margin-right: 10px;">Subroutine1</a>
-        <a asp-controller="Subroutine2" asp-action="Index" style="margin-right: 10px;">Subroutine2</a>
-        <a asp-controller="Subroutine3" asp-action="Index">Subroutine3</a>
+        <a asp-controller="Subroutine2" asp-action="Index" class="link-to-greenhouse">
+            🌿 Перейти до даних теплиці
+        </a>
+
+        <form method="post" asp-action="Logout">
+            <button type="submit" class="btn-logout">Вийти</button>
+        </form>
+
     </div>
+
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,35 @@
+@model SmartGreenhouse.Web.Models.SearchViewModel
+
+<h2>🔍 Пошук вимірювань</h2>
+
+<form asp-action="Results" method="post" class="row g-3">
+    <div class="col-md-3">
+        <label>Сенсор</label>
+        <select name="SensorId" class="form-select">
+            <option value="">— Всі —</option>
+            @foreach (var s in Model.Sensors)
+            {
+                <option value="@s.Id">@s.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Дата від</label>
+        <input type="date" name="FromDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>Дата до</label>
+        <input type="date" name="ToDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>Мін. значення</label>
+        <input type="number" step="0.1" name="MinValue" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>Макс. значення</label>
+        <input type="number" step="0.1" name="MaxValue" class="form-control" />
+    </div>
+    <div class="col-md-12">
+        <button type="submit" class="btn btn-primary mt-2">🔎 Пошук</button>
+    </div>
+</form>

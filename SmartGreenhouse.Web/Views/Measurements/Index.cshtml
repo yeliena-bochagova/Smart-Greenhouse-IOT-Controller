@@ -1,0 +1,14 @@
+@model List<Measurement>
+
+<h2>Measurements</h2>
+
+<table class="table">
+@foreach (var m in Model)
+{
+    <tr>
+        <td>@m.Timestamp</td>
+        <td>@m.Value</td>
+        <td><a href="/Measurements/Details/@m.Id">Details</a></td>
+    </tr>
+}
+</table>
