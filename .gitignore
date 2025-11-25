@@ -30,10 +30,10 @@ secrets.json
 
 # Ігноруємо локальну базу даних
 SmartGreenhouse.Web/SmartGreenhouse.db
-
+# НЕ ВИДАЛЯТИ!!!!
 SmartGreenhouse.Web/appsettings.json
 OAuth2/appsettings.json
-
+# ТУТ КЛЮЧІ ВАШІ ^
 nupkgs/
 
 greenhouse.log
