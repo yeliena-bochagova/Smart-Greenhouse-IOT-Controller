@@ -1,0 +1,119 @@
+@using SmartGreenhouse.Clients
+@model IEnumerable<SmartGreenhouse.Clients.Measurement>
+
+@{ 
+    ViewData["Title"] = "V2: Аналітика та Деталі";
+} 
+
+<style>
+    .gradient-card-1 { background: linear-gradient(45deg, #11998e, #38ef7d); border: none; color: white; }
+    .gradient-card-2 { background: linear-gradient(45deg, #00b09b, #96c93d); border: none; color: white; }
+    .gradient-card-3 { background: linear-gradient(45deg, #FF512F, #DD2476); border: none; color: white; }
+    .stat-card { transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-5px); }
+</style>
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-graph-up-arrow text-success"></i> @ViewData["Title"]</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card gradient-card-1 shadow-lg rounded-4 p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 text-uppercase">Середня t°C</h6>
+                        <h2 class="display-6 fw-bold mb-0">@(((double)ViewBag.AvgTemperature).ToString("F1"))°</h2>
+                    </div>
+                    <i class="bi bi-thermometer-sun fs-1 text-white-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card gradient-card-2 shadow-lg rounded-4 p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 text-uppercase">Записів</h6>
+                        <h2 class="display-6 fw-bold mb-0">@ViewBag.TotalRecords</h2>
+                    </div>
+                    <i class="bi bi-database-check fs-1 text-white-50"></i>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-4">
+            <div class="card stat-card gradient-card-3 shadow-lg rounded-4 p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 text-uppercase">Останнє оновлення</h6>
+                        <h5 class="fw-bold mb-0">@(ViewBag.LatestMeasurement?.Timestamp.LocalDateTime.ToString("HH:mm") ?? "--:--")</h5>
+                        <small>@(ViewBag.LatestMeasurement?.Timestamp.LocalDateTime.ToString("dd.MM.yyyy") ?? "")</small>
+                    </div>
+                    <i class="bi bi-clock-history fs-1 text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow rounded-4 border-0 overflow-hidden">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="mb-0 fw-bold text-secondary"><i class="bi bi-list-ul"></i> Детальний журнал</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary">
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>Час</th>
+                        <th>Показники</th>
+                        <th>Сенсор</th>
+                        <th>Користувач</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 text-muted">#@item.Id</td>
+                            <td>
+                                <span class="fw-bold">@item.Timestamp.LocalDateTime.ToString("HH:mm:ss")</span><br/>
+                                <small class="text-muted">@item.Timestamp.LocalDateTime.ToString("dd MMM")</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border me-1">
+                                    <i class="bi bi-thermometer-half text-danger"></i> @item.Temperature.ToString("F1")°C
+                                </span>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-droplet-fill text-primary"></i> @item.Humidity.ToString("F0")%
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.Sensor != null)
+                                {
+                                    <i class="bi bi-cpu text-secondary"></i> @item.Sensor.Name
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Немає даних</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.User != null)
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                                            @item.User.Username.Substring(0,1).ToUpper()
+                                        </div>
+                                        <span>@item.User.Username</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

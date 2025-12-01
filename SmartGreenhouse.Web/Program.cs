@@ -16,9 +16,33 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. РЕЄСТРАЦІЯ СЕРВІСІВ ТА ВИБІР БД
 // =========================================================
 
-builder.Services.AddControllersWithViews();
+
 builder.Services.AddSingleton<UserStore>();
 builder.Services.AddSingleton<ISensorService, SensorService>();
+builder.Services.AddHttpClient(); // Додаємо HttpClient
+
+
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
+// Реєстрація V1 клієнта (Сумісний інтерфейс)
+builder.Services.AddScoped<SmartGreenhouse.Clients.ApiV1Client>(provider =>
+{
+    var httpClient = provider.GetRequiredService<HttpClient>();
+    // ВИКОРИСТОВУЄМО ПОРТ 5273
+    return new SmartGreenhouse.Clients.ApiV1Client("http://localhost:5273", httpClient); 
+});
+
+// Реєстрація V2 клієнта (Розширений функціонал)
+builder.Services.AddScoped<SmartGreenhouse.Clients.ApiV2Client>(provider =>
+{
+    var httpClient = provider.GetRequiredService<HttpClient>();
+    // ВИКОРИСТОВУЄМО ПОРТ 5273
+    return new SmartGreenhouse.Clients.ApiV2Client("http://localhost:5273", httpClient);
+});
 
 // Фоновий генератор даних
 builder.Services.AddHostedService<DataGeneratorService>();
@@ -118,7 +142,6 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v2"
     });
 
-    // Если есть XML-комментарии для методов, включаем их
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
